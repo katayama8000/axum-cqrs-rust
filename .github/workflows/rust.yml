@@ -1,0 +1,28 @@
+name: Rust
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "README.md"
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+      - name: Install Rust toolchain
+        run: |
+          rustup toolchain install stable
+      - name: Install cargo-related tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
+      - name: Build
+        run: cargo build --verbose
+      - name: Test
+        run: cargo nextest run --workspace

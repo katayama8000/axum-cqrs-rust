@@ -1,0 +1,24 @@
+{
+  "dockerComposeFile": [
+    "../compose.yml"
+  ],
+  "service": "server",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "GitHub.copilot",
+        "ms-azuretools.vscode-docker",
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "adpyke.vscode-sql-formatter",
+        "fill-labs.dependi"
+      ],
+      "settings": {
+        "files.watcherExclude": {
+          "**/target/**": true
+        }
+      }
+    }
+  }
+}
