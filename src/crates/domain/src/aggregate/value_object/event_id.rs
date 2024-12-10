@@ -1,3 +1,4 @@
+use rand::distributions::{Alphanumeric, DistString};
 use std::str::FromStr;
 
 pub enum Error {
@@ -8,6 +9,10 @@ pub enum Error {
 pub struct EventId(String);
 
 impl EventId {
+    pub fn generate() -> Self {
+        let mut rng = rand::thread_rng();
+        Self(Alphanumeric.sample_string(&mut rng, 36))
+    }
     pub fn new(id: String) -> Self {
         EventId(id)
     }

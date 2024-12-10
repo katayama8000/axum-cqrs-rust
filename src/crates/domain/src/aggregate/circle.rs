@@ -1,3 +1,4 @@
+mod event;
 use super::{
     member::Member,
     value_object::{circle_id::CircleId, grade::Grade},
