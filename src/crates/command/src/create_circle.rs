@@ -74,6 +74,7 @@ where
         &mut self,
         create_circle_input: CreateCircleInput,
     ) -> Result<CreateCircleOutput> {
+        // check input
         let grade = Grade::try_from(create_circle_input.owner_grade)?;
         let major = Major::from(create_circle_input.owner_major.as_str());
         let owner = Member::new(
@@ -88,9 +89,14 @@ where
             owner,
             create_circle_input.capacity,
         )?;
+
+        // check duplicate
         self.circle_duplicate_checker
             .check_circle_duplicate(&circle)
             .await?;
+
+        // TODO: check event
+        // create circle
         self.circle_repository
             .create(&circle)
             .await
