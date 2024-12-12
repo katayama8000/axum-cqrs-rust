@@ -96,9 +96,10 @@ where
             .await?;
 
         // TODO: check event
+
         // create circle
         self.circle_repository
-            .create(&circle)
+            .store(None, vec![])
             .await
             .map(|_| CreateCircleOutput {
                 circle_id: String::from(circle.id),
@@ -131,9 +132,9 @@ mod tests {
         );
 
         mocked_circle_repository
-            .expect_create()
+            .expect_store()
             .times(1)
-            .return_once(|_| Ok(()));
+            .return_once(|_, _| Ok(()));
         mocked_circle_duplicate_checker
             .expect_check_circle_duplicate()
             .times(1)
@@ -165,7 +166,7 @@ mod tests {
             .times(1)
             .return_once(|_| Err(anyhow!("Circle name already exists")));
 
-        mocked_circle_repository.expect_create().times(0);
+        mocked_circle_repository.expect_store().times(0);
 
         let mut usecase =
             CreateCircleUsecase::new(mocked_circle_repository, mocked_circle_duplicate_checker);

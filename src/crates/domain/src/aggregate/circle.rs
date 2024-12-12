@@ -1,4 +1,4 @@
-mod event;
+pub mod event;
 use super::{
     member::Member,
     value_object::{circle_id::CircleId, grade::Grade},
@@ -60,14 +60,6 @@ impl Circle {
 
     fn is_full(&self) -> bool {
         self.members.len() + 1 >= self.capacity as usize
-    }
-
-    fn _is_runnable(&self) -> bool {
-        self.members.len() + 1 >= 3
-    }
-
-    fn _is_drinkable_alcohol(member: &Member) -> bool {
-        member.is_adult()
     }
 
     pub fn add_member(&mut self, member: Member) -> Result<(), Error> {

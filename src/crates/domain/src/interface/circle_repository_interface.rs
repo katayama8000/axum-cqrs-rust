@@ -1,4 +1,7 @@
-use crate::aggregate::{circle::Circle, value_object::circle_id::CircleId};
+use crate::aggregate::{
+    circle::{event::Event, Circle},
+    value_object::{circle_id::CircleId, version::Version},
+};
 use anyhow::Error;
 
 #[mockall::automock]
@@ -6,7 +9,6 @@ use anyhow::Error;
 pub trait CircleRepositoryInterface: Send + Sync {
     async fn find_all(&self) -> Result<Vec<Circle>, Error>;
     async fn find_by_id(&self, circle_id: &CircleId) -> Result<Circle, Error>;
-    async fn create(&self, circle: &Circle) -> Result<(), Error>;
-    async fn update(&self, circle: &Circle) -> Result<Circle, Error>;
+    async fn store(&self, current: Option<Version>, events: Vec<Event>) -> Result<(), Error>;
     async fn delete(&self, circle: &Circle) -> Result<(), Error>;
 }
