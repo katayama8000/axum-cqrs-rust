@@ -60,8 +60,9 @@ where
             update_circle_input.circle_name,
             update_circle_input.capacity,
         );
+        // FIXME: define version
         self.circle_repository
-            .update(&circle)
+            .store(None, vec![])
             .await
             .map(|_cirlce| UpdateCircleOutPut {
                 circle_id: String::from(circle.id),
@@ -93,9 +94,9 @@ mod tests {
             .times(1)
             .returning(move |_| Ok(circle_clone.clone()));
         mocked_circle_repository
-            .expect_update()
+            .expect_store()
             .times(1)
-            .returning(move |_| Ok(Circle::new("footBall".to_string(), owner.clone(), 20)?));
+            .returning(move |_, _| Ok(()));
         let mut usecase = UpdateCircleUsecase::new(mocked_circle_repository);
         let input = UpdateCircleInput::new(
             circle.id.to_string(),
