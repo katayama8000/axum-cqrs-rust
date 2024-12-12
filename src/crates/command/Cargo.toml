@@ -10,3 +10,4 @@ anyhow.workspace = true
 mockall.workspace = true
 domain = { path = "../domain" }
 tokio.workspace = true
+async-trait.workspace = true
