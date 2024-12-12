@@ -1,4 +1,3 @@
-use rand::Rng;
 use std::fmt;
 
 #[derive(Debug, PartialEq)]
@@ -69,14 +68,6 @@ impl fmt::Display for Version {
 impl rand::distributions::Distribution<Version> for rand::distributions::Standard {
     fn sample<R: rand::prelude::Rng + ?Sized>(&self, rng: &mut R) -> Version {
         Version(rng.gen())
-    }
-}
-
-#[cfg(any(test, feature = "test-utils"))]
-impl Version {
-    pub fn new_for_testing() -> Self {
-        let mut rng = rand::thread_rng();
-        Self(rng.gen())
     }
 }
 
