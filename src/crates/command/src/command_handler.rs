@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use domain::interface::{
     circle_duplicate_checker_interface::HasCircleDuplicateCheckerInterface,
     circle_repository_interface::HasCircleRepositoryInterface,
@@ -20,4 +22,8 @@ pub trait CommandHandler:
         )
         .await
     }
+}
+
+pub trait HasCommandHandler {
+    fn command_handler(&self) -> Arc<dyn CommandHandler + Send + Sync>;
 }
