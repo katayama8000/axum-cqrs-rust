@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use crate::aggregate::circle::Circle;
-use anyhow::Error;
+
+pub struct Error(pub Box<dyn std::error::Error + Send + Sync>);
 
 #[mockall::automock]
 #[async_trait::async_trait]

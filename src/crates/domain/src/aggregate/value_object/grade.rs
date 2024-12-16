@@ -1,3 +1,7 @@
+pub enum Error {
+    OutOfGrade,
+}
+
 #[derive(Copy, Debug, PartialEq, Eq, Hash, Clone)]
 pub enum Grade {
     First,
@@ -18,7 +22,7 @@ impl std::convert::From<Grade> for i16 {
 }
 
 impl std::convert::TryFrom<i16> for Grade {
-    type Error = anyhow::Error;
+    type Error = Error;
 
     fn try_from(value: i16) -> Result<Self, Self::Error> {
         Ok(match value {
@@ -26,7 +30,7 @@ impl std::convert::TryFrom<i16> for Grade {
             2 => Grade::Second,
             3 => Grade::Third,
             4 => Grade::Fourth,
-            _ => anyhow::bail!("error"),
+            _ => return Err(Error::OutOfGrade),
         })
     }
 }
@@ -44,7 +48,12 @@ mod tests {
             (Grade::Fourth, 4),
         ] {
             assert_eq!(i16::from(v), n);
-            assert_eq!(Grade::try_from(n)?, v);
+            assert_eq!(
+                Grade::try_from(n).map_err(|e| match e {
+                    Error::OutOfGrade => anyhow::Error::msg("Out of grade"),
+                })?,
+                v
+            );
         }
         Ok(())
     }
