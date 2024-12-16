@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{fmt::Display, sync::Arc};
 
 use anyhow::Result;
 use serde::Deserialize;
@@ -21,11 +21,11 @@ pub enum Error {
     Duplicate,
 }
 
-impl From<Error> for String {
-    fn from(e: Error) -> String {
-        match e {
-            Error::Circle => "circle error".to_string(),
-            Error::Duplicate => "duplicate error".to_string(),
+impl Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Error::Circle => write!(f, "circle error"),
+            Error::Duplicate => write!(f, "duplicate error"),
         }
     }
 }
