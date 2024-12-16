@@ -30,8 +30,8 @@ impl Display for Error {
 #[derive(Debug, Deserialize)]
 pub struct Input {
     pub circle_id: String,
-    pub circle_name: String,
-    pub capacity: i16,
+    pub circle_name: Option<String>,
+    pub capacity: Option<i16>,
 }
 
 #[derive(Debug)]
@@ -58,7 +58,7 @@ pub async fn handle(
         .map_err(|_| Error::Circle)?;
 
     // update
-    let circle = circle.update(Some(circle_name), Some(capacity));
+    let circle = circle.update(circle_name, capacity);
 
     // check duplicate
     circle_duplicate_checker

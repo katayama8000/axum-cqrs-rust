@@ -1,9 +1,12 @@
 use std::sync::Arc;
 
-use crate::{config::connect::connect, handler::handle_create_circle};
+use crate::{
+    config::connect::connect,
+    handler::{handle_create_circle, handle_update_circle},
+};
 
 use axum::{
-    routing::{get, post},
+    routing::{get, post, put},
     Router,
 };
 use command::command_handler::{CommandHandler, HasCommandHandler};
@@ -37,7 +40,7 @@ fn router() -> Router<AppState> {
         // .route("/circle/:id", get(handle_fetch_circle))
         // .route("/circle", get(handle_fetch_all))
         .route("/circle", post(handle_create_circle))
-        // .route("/circle/:id", put(handle_update_circle))
+        .route("/circle/:id", put(handle_update_circle))
         .route("/debug", get(handle_debug))
 }
 
