@@ -132,13 +132,6 @@ pub async fn handle_create_circle(
 //         .map_err(|e| e.to_string())
 // }
 
-// pub async fn handle_fetch_all(State(state): State<AppState>) -> impl IntoResponse {
-//     let usecase = FetchAllCircleUsecase::new(state.circle_repository);
-//     let circles = usecase.execute().await;
-//     tracing::info!("circles: {:?}", circles);
-//     (StatusCode::OK).into_response()
-// }
-
 #[derive(Debug, Deserialize)]
 pub struct UpdateCircleInputParam {
     id: String,
