@@ -1,6 +1,5 @@
 use std::{fmt::Display, sync::Arc};
 
-use anyhow::Result;
 use serde::Deserialize;
 
 use domain::{
@@ -19,6 +18,7 @@ use domain::{
 pub enum Error {
     Circle,
     Duplicate,
+    InvalidInput,
 }
 
 impl Display for Error {
@@ -26,6 +26,7 @@ impl Display for Error {
         match self {
             Error::Circle => write!(f, "circle error"),
             Error::Duplicate => write!(f, "duplicate error"),
+            Error::InvalidInput => write!(f, "invalid input error"),
         }
     }
 }
@@ -58,24 +59,23 @@ pub async fn handle(
         owner_major,
     }: Input,
 ) -> Result<Output, Error> {
-    // check
-    let grade = Grade::try_from(owner_grade).unwrap();
+    // check input
+    let grade = Grade::try_from(owner_grade).map_err(|_| Error::InvalidInput)?;
     let major = Major::from(owner_major.as_str());
     let owner = Member::create(owner_name, owner_age, grade, major);
-    let circle = Circle::create(circle_name, owner, capacity).unwrap();
+    let circle = Circle::create(circle_name, owner, capacity).map_err(|_| Error::InvalidInput)?;
 
-    match {
-        circle_duplicate_checker
-            .check_circle_duplicate(&circle)
-            .await
-    } {
-        Ok(_) => {}
-        Err(_) => {
-            return Err(Error::Duplicate);
-        }
-    }
+    // check duplicate
+    circle_duplicate_checker
+        .check_circle_duplicate(&circle)
+        .await
+        .map_err(|_| Error::Duplicate)?;
 
-    circle_repository.store(None, &circle).await.unwrap();
+    // store
+    circle_repository
+        .store(None, &circle)
+        .await
+        .map_err(|_| Error::Circle)?;
 
     Ok(Output {
         circle_id: circle.id.to_string(),
