@@ -10,7 +10,7 @@ pub struct Member {
 }
 
 impl Member {
-    pub fn new(name: String, age: i16, grade: Grade, major: Major) -> Self {
+    pub fn create(name: String, age: i16, grade: Grade, major: Major) -> Self {
         Member {
             id: MemberId::gen(),
             name,

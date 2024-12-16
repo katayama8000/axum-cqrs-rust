@@ -171,9 +171,9 @@ mod tests {
     }
 
     fn build_circle() -> anyhow::Result<Circle> {
-        Circle::new(
+        Circle::create(
             "Music club".to_string(),
-            Member::new("member_name1".to_string(), 21, Grade::Third, Major::Art),
+            Member::create("member_name1".to_string(), 21, Grade::Third, Major::Art),
             3,
         )
     }

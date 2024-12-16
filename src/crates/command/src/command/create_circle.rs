@@ -58,10 +58,11 @@ pub async fn handle(
         owner_major,
     }: Input,
 ) -> Result<Output, Error> {
+    // check
     let grade = Grade::try_from(owner_grade).unwrap();
     let major = Major::from(owner_major.as_str());
-    let owner = Member::new(owner_name, owner_age, grade, major);
-    let circle = Circle::new(circle_name, owner, capacity).unwrap();
+    let owner = Member::create(owner_name, owner_age, grade, major);
+    let circle = Circle::create(circle_name, owner, capacity).unwrap();
 
     match {
         circle_duplicate_checker

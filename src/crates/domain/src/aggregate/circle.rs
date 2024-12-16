@@ -14,7 +14,7 @@ pub struct Circle {
 }
 
 impl Circle {
-    pub fn new(name: String, owner: Member, capacity: i16) -> Result<Self, Error> {
+    pub fn create(name: String, owner: Member, capacity: i16) -> Result<Self, Error> {
         if owner.grade != Grade::Third {
             return Err(Error::msg("Owner must be 3rd grade"));
         }
