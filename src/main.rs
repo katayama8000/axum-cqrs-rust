@@ -1,34 +1,43 @@
-use crate::{
-    config::connect::connect,
-    handler::{handle_create_circle, handle_fetch_all, handle_fetch_circle, handle_update_circle},
-};
+use std::sync::Arc;
+
+use crate::{config::connect::connect, handler::handle_create_circle};
 
 use axum::{
-    routing::{get, post, put},
+    routing::{get, post},
     Router,
 };
+use command::command_handler::{CommandHandler, HasCommandHandler};
 use handler::{handle_debug, handle_get_version};
-use infrastructure::{
-    circle_duplicate_checker::CircleDuplicateCheckerWithMySql,
-    circle_repository_with_my_sql::CircleRepositoryWithMySql,
-};
+use injectors::build_command_handler::build_command_handler;
 
 mod config;
 mod handler;
+mod injectors;
 
 #[derive(Clone)]
 struct AppState {
-    circle_repository: CircleRepositoryWithMySql,
-    circle_duplicate_checker: CircleDuplicateCheckerWithMySql,
+    command_handler: Arc<dyn CommandHandler + Send + Sync>,
+}
+
+impl AppState {
+    pub fn new(command_handler: Arc<dyn CommandHandler + Send + Sync>) -> Self {
+        Self { command_handler }
+    }
+}
+
+impl HasCommandHandler for AppState {
+    fn command_handler(&self) -> Arc<dyn CommandHandler + Send + Sync> {
+        self.command_handler.clone()
+    }
 }
 
 fn router() -> Router<AppState> {
     Router::new()
         .route("/version", get(handle_get_version))
-        .route("/circle/:id", get(handle_fetch_circle))
-        .route("/circle", get(handle_fetch_all))
+        // .route("/circle/:id", get(handle_fetch_circle))
+        // .route("/circle", get(handle_fetch_all))
         .route("/circle", post(handle_create_circle))
-        .route("/circle/:id", put(handle_update_circle))
+        // .route("/circle/:id", put(handle_update_circle))
         .route("/debug", get(handle_debug))
 }
 
@@ -37,10 +46,9 @@ async fn main() -> Result<(), ()> {
     tracing_subscriber::fmt().init();
 
     let pool = connect().await.expect("database should connect");
-    let state = AppState {
-        circle_repository: CircleRepositoryWithMySql::new(pool.clone()),
-        circle_duplicate_checker: CircleDuplicateCheckerWithMySql::new(pool.clone()),
-    };
+
+    let command_handler = build_command_handler(pool.clone());
+    let state = AppState::new(Arc::new(command_handler));
 
     let app = router().with_state(state);
 
@@ -61,13 +69,10 @@ mod tests {
         handler::{CreateCircleRequestBody, CreateCircleResponseBody, UpdateCircleRequestBody},
     };
     use axum::http::{header::CONTENT_TYPE, StatusCode};
-    use domain::{
-        aggregate::{
-            circle::Circle,
-            member::Member,
-            value_object::{circle_id::CircleId, grade::Grade, major::Major, member_id::MemberId},
-        },
-        interface::circle_repository_interface::CircleRepositoryInterface,
+    use domain::aggregate::{
+        circle::Circle,
+        member::Member,
+        value_object::{circle_id::CircleId, grade::Grade, major::Major, member_id::MemberId},
     };
     use tower::ServiceExt;
 
@@ -78,9 +83,9 @@ mod tests {
     #[ignore]
     async fn test_version() -> anyhow::Result<()> {
         let pool = connect_test().await.expect("database should connect");
+        let command_handler = build_command_handler(pool.clone());
         let state = AppState {
-            circle_repository: CircleRepositoryWithMySql::new(pool.clone()),
-            circle_duplicate_checker: CircleDuplicateCheckerWithMySql::new(pool.clone()),
+            command_handler: Arc::new(command_handler),
         };
         let app = router().with_state(state);
         let response = app
@@ -105,9 +110,9 @@ mod tests {
     #[ignore]
     async fn test_create_circle() -> anyhow::Result<()> {
         let pool = connect_test().await.expect("database should connect");
+        let command_handler = build_command_handler(pool.clone());
         let state = AppState {
-            circle_repository: CircleRepositoryWithMySql::new(pool.clone()),
-            circle_duplicate_checker: CircleDuplicateCheckerWithMySql::new(pool.clone()),
+            command_handler: Arc::new(command_handler),
         };
         let app = router().with_state(state.clone());
         let response = app
@@ -134,7 +139,8 @@ mod tests {
         )?;
 
         let created = state
-            .circle_repository
+            .command_handler()
+            .circle_repository()
             .find_by_id(&CircleId::from_str(&response_body.circle_id)?)
             .await?;
         let circle = Circle::reconstruct(
@@ -158,9 +164,9 @@ mod tests {
     #[ignore]
     async fn test_fetch_circle() -> anyhow::Result<()> {
         let pool = connect_test().await.expect("database should connect");
+        let command_handler = build_command_handler(pool.clone());
         let state = AppState {
-            circle_repository: CircleRepositoryWithMySql::new(pool.clone()),
-            circle_duplicate_checker: CircleDuplicateCheckerWithMySql::new(pool.clone()),
+            command_handler: Arc::new(command_handler),
         };
         let app = router().with_state(state);
         let unexist_circle_id = 0;
@@ -211,9 +217,9 @@ mod tests {
     #[ignore]
     async fn test_update_circle() -> anyhow::Result<()> {
         let pool = connect_test().await.expect("database should connect");
+        let command_handler = build_command_handler(pool.clone());
         let state = AppState {
-            circle_repository: CircleRepositoryWithMySql::new(pool.clone()),
-            circle_duplicate_checker: CircleDuplicateCheckerWithMySql::new(pool.clone()),
+            command_handler: Arc::new(command_handler),
         };
         let app = router().with_state(state.clone());
         let (circle_id, _) = build_circle(&app).await?;
@@ -234,7 +240,8 @@ mod tests {
         assert_eq!(update_response.status(), StatusCode::OK);
 
         let updated_circle = state
-            .circle_repository
+            .command_handler()
+            .circle_repository()
             .find_by_id(&CircleId::from_str(&circle_id)?)
             .await?;
         assert_eq!(updated_circle.name, "Football club");

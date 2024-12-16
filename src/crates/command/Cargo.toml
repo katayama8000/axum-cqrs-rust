@@ -1,8 +1,7 @@
 [package]
-name = "usecase"
+name = "command"
 version = "0.1.0"
 edition = "2021"
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 serde.workspace = true
@@ -11,3 +10,4 @@ anyhow.workspace = true
 mockall.workspace = true
 domain = { path = "../domain" }
 tokio.workspace = true
+async-trait.workspace = true

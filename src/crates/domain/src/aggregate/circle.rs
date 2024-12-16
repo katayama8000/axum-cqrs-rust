@@ -14,7 +14,7 @@ pub struct Circle {
 }
 
 impl Circle {
-    pub fn new(name: String, owner: Member, capacity: i16) -> Result<Self, Error> {
+    pub fn create(name: String, owner: Member, capacity: i16) -> Result<Self, Error> {
         if owner.grade != Grade::Third {
             return Err(Error::msg("Owner must be 3rd grade"));
         }
@@ -59,14 +59,6 @@ impl Circle {
 
     fn is_full(&self) -> bool {
         self.members.len() + 1 >= self.capacity as usize
-    }
-
-    fn _is_runnable(&self) -> bool {
-        self.members.len() + 1 >= 3
-    }
-
-    fn _is_drinkable_alcohol(member: &Member) -> bool {
-        member.is_adult()
     }
 
     pub fn add_member(&mut self, member: Member) -> Result<(), Error> {

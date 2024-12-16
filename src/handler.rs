@@ -1,17 +1,12 @@
 use crate::AppState;
 use axum::{
-    extract::{Json, Path, State},
+    extract::{Json, State},
     http::StatusCode,
     response::IntoResponse,
 };
+use command::command::create_circle::{Input, Output};
 use serde::Deserialize;
 use std::env;
-use usecase::{
-    create_circle::{CreateCircleInput, CreateCircleOutput, CreateCircleUsecase},
-    fetch_all_circle::FetchAllCircleUsecase,
-    fetch_circle::{FetchCircleInput, FetchCircleOutput, FetchCircleUsecase, MemberOutput},
-    update_circle::{UpdateCircleInput, UpdateCircleOutPut, UpdateCircleUsecase},
-};
 
 pub async fn handle_get_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
@@ -27,7 +22,7 @@ pub struct CreateCircleRequestBody {
     pub owner_major: String,
 }
 
-impl std::convert::From<CreateCircleRequestBody> for CreateCircleInput {
+impl std::convert::From<CreateCircleRequestBody> for Input {
     fn from(
         CreateCircleRequestBody {
             circle_name,
@@ -38,14 +33,14 @@ impl std::convert::From<CreateCircleRequestBody> for CreateCircleInput {
             owner_major,
         }: CreateCircleRequestBody,
     ) -> Self {
-        CreateCircleInput::new(
+        Input {
             circle_name,
             capacity,
             owner_name,
             owner_age,
             owner_grade,
             owner_major,
-        )
+        }
     }
 }
 
@@ -55,12 +50,12 @@ pub struct CreateCircleResponseBody {
     pub owner_id: String,
 }
 
-impl std::convert::From<CreateCircleOutput> for CreateCircleResponseBody {
+impl std::convert::From<Output> for CreateCircleResponseBody {
     fn from(
-        CreateCircleOutput {
+        Output {
             circle_id,
             owner_id,
-        }: CreateCircleOutput,
+        }: Output,
     ) -> Self {
         CreateCircleResponseBody {
             circle_id,
@@ -73,76 +68,72 @@ pub async fn handle_create_circle(
     State(state): State<AppState>,
     Json(body): Json<CreateCircleRequestBody>,
 ) -> Result<Json<CreateCircleResponseBody>, String> {
-    let circle_circle_input = CreateCircleInput::from(body);
-    let mut usecase =
-        CreateCircleUsecase::new(state.circle_repository, state.circle_duplicate_checker);
-    usecase
-        .execute(circle_circle_input)
-        .await
-        .map(CreateCircleResponseBody::from)
-        .map(Json)
-        .map_err(|e| e.to_string())
-}
-
-#[derive(Debug, Deserialize)]
-pub struct FetchCircleInputParam {
-    id: String,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct FetcheCircleResponseBody {
-    pub circle_id: String,
-    pub circle_name: String,
-    pub capacity: i16,
-    pub owner: MemberOutput,
-    pub members: Vec<MemberOutput>,
-}
-
-impl std::convert::From<FetchCircleOutput> for FetcheCircleResponseBody {
-    fn from(
-        FetchCircleOutput {
-            circle_id,
-            circle_name,
-            capacity,
-            owner,
-            members,
-        }: FetchCircleOutput,
-    ) -> Self {
-        FetcheCircleResponseBody {
-            circle_id,
-            circle_name,
-            capacity,
-            owner,
-            members,
-        }
+    let input = Input::from(body);
+    match state.command_handler.create_circle(input).await {
+        Ok(output) => Ok(Json(CreateCircleResponseBody::from(output))),
+        Err(e) => Err(e.to_string()),
     }
 }
 
-pub async fn handle_fetch_circle(
-    State(state): State<AppState>,
-    Path(param): Path<FetchCircleInputParam>,
-) -> Result<Json<FetcheCircleResponseBody>, String> {
-    let fetch_circle_input = FetchCircleInput::new(param.id);
-    let usecase = FetchCircleUsecase::new(state.circle_repository);
-    usecase
-        .execute(fetch_circle_input)
-        .await
-        .map(FetcheCircleResponseBody::from)
-        .map(Json)
-        .map_err(|e| e.to_string())
-}
+// #[derive(Debug, Deserialize)]
+// pub struct FetchCircleInputParam {
+//     id: String,
+// }
 
-pub async fn handle_fetch_all(State(state): State<AppState>) -> impl IntoResponse {
-    let usecase = FetchAllCircleUsecase::new(state.circle_repository);
-    let circles = usecase.execute().await;
-    tracing::info!("circles: {:?}", circles);
-    (StatusCode::OK).into_response()
-}
+// #[derive(Debug, serde::Deserialize, serde::Serialize)]
+// pub struct FetcheCircleResponseBody {
+//     pub circle_id: String,
+//     pub circle_name: String,
+//     pub capacity: i16,
+//     pub owner: MemberOutput,
+//     pub members: Vec<MemberOutput>,
+// }
 
-#[derive(Debug, Deserialize)]
-pub struct UpdateCircleInputParam {
-    id: String,
-}
+// impl std::convert::From<FetchCircleOutput> for FetcheCircleResponseBody {
+//     fn from(
+//         FetchCircleOutput {
+//             circle_id,
+//             circle_name,
+//             capacity,
+//             owner,
+//             members,
+//         }: FetchCircleOutput,
+//     ) -> Self {
+//         FetcheCircleResponseBody {
+//             circle_id,
+//             circle_name,
+//             capacity,
+//             owner,
+//             members,
+//         }
+//     }
+// }
+
+// pub async fn handle_fetch_circle(
+//     State(state): State<AppState>,
+//     Path(param): Path<FetchCircleInputParam>,
+// ) -> Result<Json<FetcheCircleResponseBody>, String> {
+//     let fetch_circle_input = FetchCircleInput::new(param.id);
+//     let usecase = FetchCircleUsecase::new(state.circle_repository);
+//     usecase
+//         .execute(fetch_circle_input)
+//         .await
+//         .map(FetcheCircleResponseBody::from)
+//         .map(Json)
+//         .map_err(|e| e.to_string())
+// }
+
+// pub async fn handle_fetch_all(State(state): State<AppState>) -> impl IntoResponse {
+//     let usecase = FetchAllCircleUsecase::new(state.circle_repository);
+//     let circles = usecase.execute().await;
+//     tracing::info!("circles: {:?}", circles);
+//     (StatusCode::OK).into_response()
+// }
+
+// #[derive(Debug, Deserialize)]
+// pub struct UpdateCircleInputParam {
+//     id: String,
+// }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct UpdateCircleRequestBody {
@@ -150,38 +141,38 @@ pub struct UpdateCircleRequestBody {
     pub capacity: Option<i16>,
 }
 
-impl UpdateCircleRequestBody {
-    pub fn convert_to_input(self, id: String) -> UpdateCircleInput {
-        UpdateCircleInput::new(id, self.circle_name, self.capacity)
-    }
-}
+// impl UpdateCircleRequestBody {
+//     pub fn convert_to_input(self, id: String) -> UpdateCircleInput {
+//         UpdateCircleInput::new(id, self.circle_name, self.capacity)
+//     }
+// }
 
 #[derive(Debug, serde::Serialize)]
 pub struct UpdateCircleResponseBody {
     pub circle_id: String,
 }
 
-impl std::convert::From<UpdateCircleOutPut> for UpdateCircleResponseBody {
-    fn from(UpdateCircleOutPut { circle_id }: UpdateCircleOutPut) -> Self {
-        UpdateCircleResponseBody { circle_id }
-    }
-}
+// impl std::convert::From<UpdateCircleOutPut> for UpdateCircleResponseBody {
+//     fn from(UpdateCircleOutPut { circle_id }: UpdateCircleOutPut) -> Self {
+//         UpdateCircleResponseBody { circle_id }
+//     }
+// }
 
-pub async fn handle_update_circle(
-    State(state): State<AppState>,
-    Path(path): Path<UpdateCircleInputParam>,
-    Json(body): Json<UpdateCircleRequestBody>,
-) -> Result<Json<UpdateCircleResponseBody>, String> {
-    let update_circle_input = body.convert_to_input(path.id.to_string());
-    let mut usecase = UpdateCircleUsecase::new(state.circle_repository);
+// pub async fn handle_update_circle(
+//     State(state): State<AppState>,
+//     Path(path): Path<UpdateCircleInputParam>,
+//     Json(body): Json<UpdateCircleRequestBody>,
+// ) -> Result<Json<UpdateCircleResponseBody>, String> {
+//     let update_circle_input = body.convert_to_input(path.id.to_string());
+//     let mut usecase = UpdateCircleUsecase::new(state.circle_repository);
 
-    usecase
-        .execute(update_circle_input)
-        .await
-        .map(UpdateCircleResponseBody::from)
-        .map(Json)
-        .map_err(|e| e.to_string())
-}
+//     usecase
+//         .execute(update_circle_input)
+//         .await
+//         .map(UpdateCircleResponseBody::from)
+//         .map(Json)
+//         .map_err(|e| e.to_string())
+// }
 
 #[tracing::instrument(name = "handle_debug", skip())]
 pub async fn handle_debug() -> impl IntoResponse {
