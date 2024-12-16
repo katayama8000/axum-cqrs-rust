@@ -3,7 +3,7 @@ use std::str::FromStr;
 use anyhow::Error;
 use domain::{
     aggregate::{
-        circle::{event, Circle},
+        circle::Circle,
         member::Member,
         value_object::{
             circle_id::CircleId, grade::Grade, major::Major, member_id::MemberId, version,
@@ -41,7 +41,7 @@ impl CircleRepositoryInterface for CircleRepository {
     async fn store(
         &self,
         version: Option<version::Version>,
-        _events: Vec<event::Event>,
+        _circle: &Circle,
     ) -> Result<(), anyhow::Error> {
         match version {
             Some(_version) => {
@@ -160,10 +160,10 @@ mod tests {
         let mut circle1 = build_circle()?;
         let repository = CircleRepository::new();
         assert!(repository.find_by_id(&circle1.id).await.is_err());
-        repository.store(None, vec![]).await?;
+        repository.store(None, &circle1).await?;
         assert_eq!(repository.find_by_id(&circle1.id).await?, circle1);
         circle1.name = "circle_name2".to_string();
-        repository.store(None, vec![]).await?;
+        repository.store(None, &circle1).await?;
         assert_eq!(repository.find_by_id(&circle1.id).await?, circle1);
         repository.delete(&circle1).await?;
         assert!(repository.find_by_id(&circle1.id).await.is_err());

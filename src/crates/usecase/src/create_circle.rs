@@ -92,7 +92,7 @@ where
             .check_circle_duplicate(&circle)
             .await?;
         self.circle_repository
-            .store(None, vec![])
+            .store(None, &circle)
             .await
             .map(|_| CreateCircleOutput {
                 circle_id: String::from(circle.id),

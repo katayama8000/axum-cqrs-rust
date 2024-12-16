@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::aggregate::{
-    circle::{event::Event, Circle},
+    circle::Circle,
     value_object::{circle_id::CircleId, version::Version},
 };
 use anyhow::Error;
@@ -11,7 +11,7 @@ use anyhow::Error;
 pub trait CircleRepositoryInterface: Send + Sync {
     async fn find_all(&self) -> Result<Vec<Circle>, Error>;
     async fn find_by_id(&self, circle_id: &CircleId) -> Result<Circle, Error>;
-    async fn store(&self, current: Option<Version>, events: Vec<Event>) -> Result<(), Error>;
+    async fn store(&self, current: Option<Version>, circle: &Circle) -> Result<(), Error>;
     async fn delete(&self, circle: &Circle) -> Result<(), Error>;
 }
 

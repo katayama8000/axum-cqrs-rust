@@ -62,7 +62,7 @@ where
         );
         // FIXME: define version
         self.circle_repository
-            .store(None, vec![])
+            .store(None, &circle)
             .await
             .map(|_cirlce| UpdateCircleOutPut {
                 circle_id: String::from(circle.id),

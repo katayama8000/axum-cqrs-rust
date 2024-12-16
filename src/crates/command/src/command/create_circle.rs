@@ -63,7 +63,7 @@ pub async fn handle(
         }
     }
 
-    circle_repository.store(None, vec![]).await.unwrap();
+    circle_repository.store(None, &circle).await.unwrap();
 
     Ok(Output {
         message: "success".to_string(),

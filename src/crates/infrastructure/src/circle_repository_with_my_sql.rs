@@ -1,6 +1,6 @@
 use domain::{
     aggregate::{
-        circle::{event, Circle},
+        circle::Circle,
         value_object::{circle_id::CircleId, version},
     },
     interface::circle_repository_interface::CircleRepositoryInterface,
@@ -123,7 +123,7 @@ impl CircleRepositoryInterface for CircleRepositoryWithMySql {
     async fn store(
         &self,
         version: Option<version::Version>,
-        _events: Vec<event::Event>,
+        _circle: &Circle,
     ) -> Result<(), anyhow::Error> {
         match version {
             Some(_version) => {
