@@ -15,9 +15,19 @@ use domain::{
     },
 };
 
+#[derive(Debug)]
 pub enum Error {
     Circle,
     Duplicate,
+}
+
+impl From<Error> for String {
+    fn from(e: Error) -> String {
+        match e {
+            Error::Circle => "circle error".to_string(),
+            Error::Duplicate => "duplicate error".to_string(),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -32,7 +42,8 @@ pub struct Input {
 
 #[derive(Debug)]
 pub struct Output {
-    pub message: String,
+    pub circle_id: String,
+    pub owner_id: String,
 }
 
 pub async fn handle(
@@ -66,6 +77,7 @@ pub async fn handle(
     circle_repository.store(None, &circle).await.unwrap();
 
     Ok(Output {
-        message: "success".to_string(),
+        circle_id: circle.id.to_string(),
+        owner_id: circle.owner.id.to_string(),
     })
 }
