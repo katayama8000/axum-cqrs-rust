@@ -48,13 +48,12 @@ impl Circle {
         }
     }
 
-    pub fn update(&mut self, name: Option<String>, capacity: Option<i16>) {
-        if let Some(name) = name {
-            self.name = name;
+    pub fn update(self, name: Option<String>, capacity: Option<i16>) -> Self {
+        Circle {
+            name: name.unwrap_or(self.name),
+            capacity: capacity.unwrap_or(self.capacity),
+            ..self
         }
-        if let Some(capacity) = capacity {
-            self.capacity = capacity;
-        };
     }
 
     fn is_full(&self) -> bool {
