@@ -9,7 +9,7 @@ use axum::{
     routing::{get, post, put},
     Router,
 };
-use command::command_handler::CommandHandler;
+use command::command_handler::{CommandHandler, HasCommandHandler};
 use handler::{handle_debug, handle_get_version};
 use infrastructure::{
     circle_duplicate_checker::CircleDuplicateCheckerWithMySql,
@@ -39,6 +39,12 @@ impl AppState {
             circle_duplicate_checker,
             command_handler,
         }
+    }
+}
+
+impl HasCommandHandler for AppState {
+    fn command_handler(&self) -> Arc<dyn CommandHandler + Send + Sync> {
+        self.command_handler.clone()
     }
 }
 
