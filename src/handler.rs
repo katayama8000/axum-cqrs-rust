@@ -2,7 +2,6 @@ use crate::AppState;
 use axum::{
     extract::{Json, Path, State},
     http::StatusCode,
-    response::IntoResponse,
 };
 use command::command::{
     create_circle::{self, Input, Output},
@@ -70,11 +69,18 @@ impl std::convert::From<create_circle::Output> for CreateCircleResponseBody {
 pub async fn handle_create_circle(
     State(state): State<AppState>,
     Json(body): Json<CreateCircleRequestBody>,
-) -> Result<Json<CreateCircleResponseBody>, String> {
+) -> Result<Json<CreateCircleResponseBody>, StatusCode> {
     let input = Input::from(body);
     match state.command_handler.create_circle(input).await {
         Ok(output) => Ok(Json(CreateCircleResponseBody::from(output))),
-        Err(e) => Err(e.to_string()),
+        Err(e) => {
+            tracing::error!("error: {:?}", e);
+            match e {
+                create_circle::Error::InvalidInput => Err(StatusCode::BAD_REQUEST),
+                create_circle::Error::Duplicate => Err(StatusCode::CONFLICT),
+                create_circle::Error::Circle => Err(StatusCode::INTERNAL_SERVER_ERROR),
+            }
+        }
     }
 }
 
@@ -171,10 +177,17 @@ pub async fn handle_update_circle(
     State(state): State<AppState>,
     Path(path): Path<UpdateCircleInputParam>,
     Json(body): Json<UpdateCircleRequestBody>,
-) -> Result<Json<UpdateCircleResponseBody>, String> {
+) -> Result<Json<UpdateCircleResponseBody>, StatusCode> {
     let input = body.into_to_input(path.id);
     match state.command_handler.update_circle(input).await {
         Ok(output) => Ok(Json(UpdateCircleResponseBody::from(output))),
-        Err(e) => Err(e.to_string()),
+        Err(e) => {
+            tracing::error!("error: {:?}", e);
+            match e {
+                update_circle::Error::InvalidInput => Err(StatusCode::BAD_REQUEST),
+                update_circle::Error::Duplicate => Err(StatusCode::CONFLICT),
+                update_circle::Error::Circle => Err(StatusCode::INTERNAL_SERVER_ERROR),
+            }
+        }
     }
 }

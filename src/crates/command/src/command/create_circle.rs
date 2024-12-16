@@ -1,4 +1,4 @@
-use std::{fmt::Display, sync::Arc};
+use std::sync::Arc;
 
 use serde::Deserialize;
 
@@ -19,16 +19,6 @@ pub enum Error {
     Circle,
     Duplicate,
     InvalidInput,
-}
-
-impl Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Error::Circle => write!(f, "circle error"),
-            Error::Duplicate => write!(f, "duplicate error"),
-            Error::InvalidInput => write!(f, "invalid input error"),
-        }
-    }
 }
 
 #[derive(Debug, Deserialize)]
