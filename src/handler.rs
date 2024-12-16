@@ -178,13 +178,3 @@ pub async fn handle_update_circle(
         Err(e) => Err(e.to_string()),
     }
 }
-
-#[tracing::instrument(name = "handle_debug", skip())]
-pub async fn handle_debug() -> impl IntoResponse {
-    tracing::info!("info");
-    tracing::error!("error");
-    tracing::warn!("warn");
-    tracing::debug!("debug");
-    tracing::trace!("trace");
-    (StatusCode::OK).into_response()
-}
