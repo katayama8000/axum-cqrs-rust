@@ -5,7 +5,7 @@ use domain::interface::{
     circle_repository_interface::HasCircleRepositoryInterface,
 };
 
-use crate::command::create_circle;
+use crate::command::{create_circle, update_circle};
 
 #[async_trait::async_trait]
 pub trait CommandHandler:
@@ -16,6 +16,18 @@ pub trait CommandHandler:
         input: create_circle::Input,
     ) -> Result<create_circle::Output, create_circle::Error> {
         create_circle::handle(
+            self.circle_repository(),
+            self.circle_duplicate_checker(),
+            input,
+        )
+        .await
+    }
+
+    async fn update_circle(
+        &self,
+        input: update_circle::Input,
+    ) -> Result<update_circle::Output, update_circle::Error> {
+        update_circle::handle(
             self.circle_repository(),
             self.circle_duplicate_checker(),
             input,

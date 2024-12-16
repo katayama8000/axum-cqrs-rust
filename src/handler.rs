@@ -1,10 +1,12 @@
 use crate::AppState;
 use axum::{
-    extract::{Json, State},
+    extract::{Json, Path, State},
     http::StatusCode,
-    response::IntoResponse,
 };
-use command::command::create_circle::{Input, Output};
+use command::command::{
+    create_circle::{self, Input, Output},
+    update_circle,
+};
 use serde::Deserialize;
 use std::env;
 
@@ -22,7 +24,7 @@ pub struct CreateCircleRequestBody {
     pub owner_major: String,
 }
 
-impl std::convert::From<CreateCircleRequestBody> for Input {
+impl std::convert::From<CreateCircleRequestBody> for create_circle::Input {
     fn from(
         CreateCircleRequestBody {
             circle_name,
@@ -50,7 +52,7 @@ pub struct CreateCircleResponseBody {
     pub owner_id: String,
 }
 
-impl std::convert::From<Output> for CreateCircleResponseBody {
+impl std::convert::From<create_circle::Output> for CreateCircleResponseBody {
     fn from(
         Output {
             circle_id,
@@ -67,11 +69,18 @@ impl std::convert::From<Output> for CreateCircleResponseBody {
 pub async fn handle_create_circle(
     State(state): State<AppState>,
     Json(body): Json<CreateCircleRequestBody>,
-) -> Result<Json<CreateCircleResponseBody>, String> {
+) -> Result<Json<CreateCircleResponseBody>, StatusCode> {
     let input = Input::from(body);
     match state.command_handler.create_circle(input).await {
         Ok(output) => Ok(Json(CreateCircleResponseBody::from(output))),
-        Err(e) => Err(e.to_string()),
+        Err(e) => {
+            tracing::error!("error: {:?}", e);
+            match e {
+                create_circle::Error::InvalidInput => Err(StatusCode::BAD_REQUEST),
+                create_circle::Error::Duplicate => Err(StatusCode::CONFLICT),
+                create_circle::Error::Circle => Err(StatusCode::INTERNAL_SERVER_ERROR),
+            }
+        }
     }
 }
 
@@ -130,10 +139,10 @@ pub async fn handle_create_circle(
 //     (StatusCode::OK).into_response()
 // }
 
-// #[derive(Debug, Deserialize)]
-// pub struct UpdateCircleInputParam {
-//     id: String,
-// }
+#[derive(Debug, Deserialize)]
+pub struct UpdateCircleInputParam {
+    id: String,
+}
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct UpdateCircleRequestBody {
@@ -141,45 +150,44 @@ pub struct UpdateCircleRequestBody {
     pub capacity: Option<i16>,
 }
 
-// impl UpdateCircleRequestBody {
-//     pub fn convert_to_input(self, id: String) -> UpdateCircleInput {
-//         UpdateCircleInput::new(id, self.circle_name, self.capacity)
-//     }
-// }
+impl UpdateCircleRequestBody {
+    pub fn into_to_input(self, id: String) -> update_circle::Input {
+        update_circle::Input {
+            circle_id: id,
+            circle_name: self.circle_name,
+            capacity: self.capacity,
+        }
+    }
+}
 
 #[derive(Debug, serde::Serialize)]
 pub struct UpdateCircleResponseBody {
     pub circle_id: String,
 }
 
-// impl std::convert::From<UpdateCircleOutPut> for UpdateCircleResponseBody {
-//     fn from(UpdateCircleOutPut { circle_id }: UpdateCircleOutPut) -> Self {
-//         UpdateCircleResponseBody { circle_id }
-//     }
-// }
+impl std::convert::From<update_circle::Output> for UpdateCircleResponseBody {
+    fn from(output: update_circle::Output) -> Self {
+        UpdateCircleResponseBody {
+            circle_id: output.circle_id,
+        }
+    }
+}
 
-// pub async fn handle_update_circle(
-//     State(state): State<AppState>,
-//     Path(path): Path<UpdateCircleInputParam>,
-//     Json(body): Json<UpdateCircleRequestBody>,
-// ) -> Result<Json<UpdateCircleResponseBody>, String> {
-//     let update_circle_input = body.convert_to_input(path.id.to_string());
-//     let mut usecase = UpdateCircleUsecase::new(state.circle_repository);
-
-//     usecase
-//         .execute(update_circle_input)
-//         .await
-//         .map(UpdateCircleResponseBody::from)
-//         .map(Json)
-//         .map_err(|e| e.to_string())
-// }
-
-#[tracing::instrument(name = "handle_debug", skip())]
-pub async fn handle_debug() -> impl IntoResponse {
-    tracing::info!("info");
-    tracing::error!("error");
-    tracing::warn!("warn");
-    tracing::debug!("debug");
-    tracing::trace!("trace");
-    (StatusCode::OK).into_response()
+pub async fn handle_update_circle(
+    State(state): State<AppState>,
+    Path(path): Path<UpdateCircleInputParam>,
+    Json(body): Json<UpdateCircleRequestBody>,
+) -> Result<Json<UpdateCircleResponseBody>, StatusCode> {
+    let input = body.into_to_input(path.id);
+    match state.command_handler.update_circle(input).await {
+        Ok(output) => Ok(Json(UpdateCircleResponseBody::from(output))),
+        Err(e) => {
+            tracing::error!("error: {:?}", e);
+            match e {
+                update_circle::Error::InvalidInput => Err(StatusCode::BAD_REQUEST),
+                update_circle::Error::Duplicate => Err(StatusCode::CONFLICT),
+                update_circle::Error::Circle => Err(StatusCode::INTERNAL_SERVER_ERROR),
+            }
+        }
+    }
 }

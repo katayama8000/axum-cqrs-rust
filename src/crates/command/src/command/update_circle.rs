@@ -1,13 +1,9 @@
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 
 use serde::Deserialize;
 
 use domain::{
-    aggregate::{
-        circle::Circle,
-        member::Member,
-        value_object::{grade::Grade, major::Major},
-    },
+    aggregate::value_object::circle_id::CircleId,
     interface::{
         circle_duplicate_checker_interface::CircleDuplicateCheckerInterface,
         circle_repository_interface::CircleRepositoryInterface,
@@ -23,37 +19,36 @@ pub enum Error {
 
 #[derive(Debug, Deserialize)]
 pub struct Input {
-    pub circle_name: String,
-    pub capacity: i16,
-    pub owner_name: String,
-    pub owner_age: i16,
-    pub owner_grade: i16,
-    pub owner_major: String,
+    pub circle_id: String,
+    pub circle_name: Option<String>,
+    pub capacity: Option<i16>,
 }
 
 #[derive(Debug)]
 pub struct Output {
     pub circle_id: String,
-    pub owner_id: String,
 }
 
 pub async fn handle(
     circle_repository: Arc<dyn CircleRepositoryInterface + Send + Sync>,
     circle_duplicate_checker: Arc<dyn CircleDuplicateCheckerInterface + Send + Sync>,
     Input {
+        circle_id,
         circle_name,
         capacity,
-        owner_name,
-        owner_age,
-        owner_grade,
-        owner_major,
     }: Input,
 ) -> Result<Output, Error> {
     // check input
-    let grade = Grade::try_from(owner_grade).map_err(|_| Error::InvalidInput)?;
-    let major = Major::from(owner_major.as_str());
-    let owner = Member::create(owner_name, owner_age, grade, major);
-    let circle = Circle::create(circle_name, owner, capacity).map_err(|_| Error::InvalidInput)?;
+    let circle_id = CircleId::from_str(circle_id.as_str()).map_err(|_| Error::InvalidInput)?;
+
+    // find the circle
+    let circle = circle_repository
+        .find_by_id(&circle_id)
+        .await
+        .map_err(|_| Error::Circle)?;
+
+    // update
+    let circle = circle.update(circle_name, capacity);
 
     // check duplicate
     circle_duplicate_checker
@@ -62,6 +57,7 @@ pub async fn handle(
         .map_err(|_| Error::Duplicate)?;
 
     // store
+    // TODO: versioning
     circle_repository
         .store(None, &circle)
         .await
@@ -69,6 +65,5 @@ pub async fn handle(
 
     Ok(Output {
         circle_id: circle.id.to_string(),
-        owner_id: circle.owner.id.to_string(),
     })
 }

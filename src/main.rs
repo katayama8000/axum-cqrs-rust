@@ -1,13 +1,14 @@
 use std::sync::Arc;
 
-use crate::{config::connect::connect, handler::handle_create_circle};
-
+use crate::{
+    config::connect::connect,
+    handler::{handle_create_circle, handle_get_version, handle_update_circle},
+};
 use axum::{
-    routing::{get, post},
+    routing::{get, post, put},
     Router,
 };
 use command::command_handler::{CommandHandler, HasCommandHandler};
-use handler::{handle_debug, handle_get_version};
 use injectors::build_command_handler::build_command_handler;
 
 mod config;
@@ -37,8 +38,7 @@ fn router() -> Router<AppState> {
         // .route("/circle/:id", get(handle_fetch_circle))
         // .route("/circle", get(handle_fetch_all))
         .route("/circle", post(handle_create_circle))
-        // .route("/circle/:id", put(handle_update_circle))
-        .route("/debug", get(handle_debug))
+        .route("/circle/:id", put(handle_update_circle))
 }
 
 #[tokio::main]
