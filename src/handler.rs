@@ -71,7 +71,7 @@ pub async fn handle_create_circle(
     let input = Input::from(body);
     match state.command_handler.create_circle(input).await {
         Ok(output) => Ok(Json(CreateCircleResponseBody::from(output))),
-        Err(e) => Err(e.into()),
+        Err(e) => Err(e.to_string()),
     }
 }
 
