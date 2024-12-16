@@ -88,7 +88,6 @@ dependencies = [
  "tower 0.5.2",
  "tracing",
  "tracing-subscriber",
- "usecase",
 ]
 
 [[package]]
@@ -2143,18 +2142,6 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
-]
-
-[[package]]
-name = "usecase"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "domain",
- "mockall",
- "serde",
- "serde_json",
- "tokio",
 ]
 
 [[package]]

@@ -2,7 +2,6 @@
 members = [
     "src/crates/infrastructure",
     "src/crates/domain",
-    "src/crates/usecase",
     "src/crates/command",
     "src/crates/query",
 ]
@@ -28,7 +27,6 @@ tracing-subscriber = { version = "0.3.19", features = [
     "fmt",
 ] }
 domain = { path = "./src/crates/domain" }
-usecase = { path = "./src/crates/usecase" }
 infrastructure = { path = "./src/crates/infrastructure" }
 command = { path = "./src/crates/command" }
 
