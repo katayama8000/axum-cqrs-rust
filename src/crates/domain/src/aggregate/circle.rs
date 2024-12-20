@@ -1,6 +1,6 @@
 use super::{
     member::Member,
-    value_object::{circle_id::CircleId, grade::Grade},
+    value_object::{circle_id::CircleId, grade::Grade, version::Version},
 };
 use anyhow::Error;
 
@@ -11,6 +11,7 @@ pub struct Circle {
     pub capacity: i16,
     pub owner: Member,
     pub members: Vec<Member>,
+    pub version: Version,
 }
 
 impl Circle {
@@ -29,6 +30,7 @@ impl Circle {
             owner,
             capacity,
             members: vec![],
+            version: Version::new(),
         })
     }
 
@@ -38,13 +40,15 @@ impl Circle {
         owner: Member,
         capacity: i16,
         members: Vec<Member>,
+        version: Version,
     ) -> Self {
-        Circle {
+        Self {
             id,
             name,
             owner,
             capacity,
             members,
+            version,
         }
     }
 
@@ -52,6 +56,7 @@ impl Circle {
         Circle {
             name: name.unwrap_or(self.name),
             capacity: capacity.unwrap_or(self.capacity),
+            version: self.version.next(),
             ..self
         }
     }
