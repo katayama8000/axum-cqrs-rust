@@ -4,6 +4,10 @@ use std::str::FromStr;
 
 use rand::distributions::{Alphanumeric, DistString};
 
+pub enum Error {
+    InvalidCircleId,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CircleId(String);
 
@@ -27,7 +31,7 @@ impl fmt::Display for CircleId {
 }
 
 impl FromStr for CircleId {
-    type Err = anyhow::Error;
+    type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self(s.to_string()))
@@ -56,7 +60,9 @@ mod tests {
         assert_eq!(circle_id.to_string().len(), 36);
 
         let str = "0123456789abcdef0123456789abcdef";
-        let circle_id = CircleId::from_str(str)?;
+        let circle_id = CircleId::from_str(str).map_err(|e| match e {
+            Error::InvalidCircleId => anyhow::Error::msg("Invalid CircleId"),
+        })?;
         assert_eq!(circle_id.to_string(), str);
         Ok(())
     }

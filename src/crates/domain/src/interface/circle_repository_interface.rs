@@ -4,7 +4,8 @@ use crate::aggregate::{
     circle::Circle,
     value_object::{circle_id::CircleId, version::Version},
 };
-use anyhow::Error;
+
+pub struct Error(pub Box<dyn std::error::Error + Send + Sync>);
 
 #[mockall::automock]
 #[async_trait::async_trait]

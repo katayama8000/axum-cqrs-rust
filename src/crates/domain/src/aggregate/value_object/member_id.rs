@@ -3,6 +3,10 @@ use std::hash::{Hash, Hasher};
 
 use rand::distributions::{Alphanumeric, DistString};
 
+pub enum Error {
+    InvalidMemberId,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MemberId(String);
 
@@ -26,7 +30,7 @@ impl fmt::Display for MemberId {
 }
 
 impl std::str::FromStr for MemberId {
-    type Err = anyhow::Error;
+    type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self(s.to_string()))
@@ -57,7 +61,9 @@ mod tests {
         assert_eq!(member_id.to_string().len(), 36);
 
         let str = "0123456789abcdef0123456789abcdef";
-        let member_id = MemberId::from_str(str)?;
+        let member_id = MemberId::from_str(str).map_err(|e| match e {
+            Error::InvalidMemberId => anyhow::Error::msg("Invalid member id"),
+        })?;
         assert_eq!(member_id.to_string(), str);
         Ok(())
     }

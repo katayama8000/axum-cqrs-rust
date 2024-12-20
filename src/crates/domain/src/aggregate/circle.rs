@@ -2,7 +2,14 @@ use super::{
     member::Member,
     value_object::{circle_id::CircleId, grade::Grade},
 };
-use anyhow::Error;
+
+pub enum Error {
+    InvalidGrade,
+    InvalidCapacity,
+    CircleMemberFull,
+    FourthGradeCantJoinCircle,
+    OwnerCantBeRemoved,
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Circle {
@@ -16,11 +23,11 @@ pub struct Circle {
 impl Circle {
     pub fn create(name: String, owner: Member, capacity: i16) -> Result<Self, Error> {
         if owner.grade != Grade::Third {
-            return Err(Error::msg("Owner must be 3rd grade"));
+            return Err(Error::InvalidGrade);
         }
 
         if capacity < 3 {
-            return Err(Error::msg("Circle capacity must be 3 or more"));
+            return Err(Error::InvalidCapacity);
         }
 
         Ok(Circle {
@@ -62,11 +69,11 @@ impl Circle {
 
     pub fn add_member(&mut self, member: Member) -> Result<(), Error> {
         if self.is_full() {
-            return Err(Error::msg("Circle member is full"));
+            return Err(Error::CircleMemberFull);
         }
 
         if member.grade == Grade::Fourth {
-            return Err(Error::msg("4th grade can't join circle"));
+            return Err(Error::FourthGradeCantJoinCircle);
         }
 
         self.members.push(member);
@@ -75,7 +82,7 @@ impl Circle {
 
     pub fn remove_member(&mut self, member: &Member) -> Result<(), Error> {
         if self.owner.id == member.id {
-            return Err(Error::msg("Owner can't be removed"));
+            return Err(Error::OwnerCantBeRemoved);
         }
         self.members.retain(|m| m.id != member.id);
         Ok(())
