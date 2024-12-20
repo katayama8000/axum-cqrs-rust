@@ -71,7 +71,9 @@ mod tests {
     use domain::aggregate::{
         circle::Circle,
         member::Member,
-        value_object::{circle_id::CircleId, grade::Grade, major::Major, member_id::MemberId},
+        value_object::{
+            circle_id::CircleId, grade::Grade, major::Major, member_id::MemberId, version::Version,
+        },
     };
     use tower::ServiceExt;
 
@@ -151,9 +153,11 @@ mod tests {
                 21,
                 Grade::try_from(3)?,
                 Major::Music,
+                Version::new(),
             ),
             10,
             vec![],
+            Version::new(),
         );
         assert_eq!(created, circle);
         Ok(())

@@ -6,7 +6,11 @@ use domain::{
         circle::Circle,
         member::Member,
         value_object::{
-            circle_id::CircleId, grade::Grade, major::Major, member_id::MemberId, version,
+            circle_id::CircleId,
+            grade::Grade,
+            major::Major,
+            member_id::MemberId,
+            version::{self, Version},
         },
     },
     interface::circle_repository_interface::CircleRepositoryInterface,
@@ -64,6 +68,7 @@ struct CircleData {
     owner: MemberData,
     capacity: i16,
     members: Vec<MemberData>,
+    version: u32,
 }
 
 impl std::convert::From<Circle> for CircleData {
@@ -74,6 +79,7 @@ impl std::convert::From<Circle> for CircleData {
             owner: MemberData::from(circle.owner),
             capacity: circle.capacity,
             members: circle.members.into_iter().map(MemberData::from).collect(),
+            version: circle.version.into(),
         }
     }
 }
@@ -91,12 +97,14 @@ impl std::convert::TryFrom<CircleData> for Circle {
                 data.owner.age,
                 Grade::try_from(data.owner.grade)?,
                 Major::from(data.owner.major.as_str()),
+                Version::from(data.version),
             ),
             data.capacity,
             data.members
                 .into_iter()
                 .map(Member::try_from)
                 .collect::<Result<Vec<Member>, Error>>()?,
+            Version::from(data.version),
         ))
     }
 }
@@ -108,6 +116,7 @@ struct MemberData {
     age: i16,
     grade: i16,
     major: String,
+    version: u32,
 }
 
 impl std::convert::From<Member> for MemberData {
@@ -118,6 +127,7 @@ impl std::convert::From<Member> for MemberData {
             age: value.age,
             grade: value.grade.into(),
             major: value.major.into(),
+            version: value.version.into(),
         }
     }
 }
@@ -132,6 +142,7 @@ impl std::convert::TryFrom<MemberData> for Member {
             value.age,
             Grade::try_from(value.grade)?,
             Major::from(value.major.as_str()),
+            Version::from(value.version),
         ))
     }
 }

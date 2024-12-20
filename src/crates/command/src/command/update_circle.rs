@@ -48,7 +48,9 @@ pub async fn handle(
         .map_err(|_| Error::Circle)?;
 
     // update
-    let circle = circle.update(circle_name, capacity);
+    let circle = circle
+        .update(circle_name, capacity)
+        .map_err(|_| Error::InvalidInput)?;
 
     // check duplicate
     circle_duplicate_checker

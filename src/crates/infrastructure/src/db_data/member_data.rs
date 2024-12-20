@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use domain::aggregate::{
     member::Member,
-    value_object::{grade::Grade, major::Major, member_id::MemberId},
+    value_object::{grade::Grade, major::Major, member_id::MemberId, version::Version},
 };
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
@@ -12,6 +12,7 @@ pub struct MemberData {
     pub age: i16,
     pub grade: i16,
     pub major: String,
+    pub version: u32,
 }
 
 impl std::convert::From<Member> for MemberData {
@@ -22,6 +23,7 @@ impl std::convert::From<Member> for MemberData {
             age: value.age,
             grade: value.grade.into(),
             major: value.major.into(),
+            version: value.version.into(),
         }
     }
 }
@@ -36,6 +38,7 @@ impl std::convert::TryFrom<MemberData> for Member {
             value.age,
             Grade::try_from(value.grade)?,
             Major::from(value.major.as_str()),
+            Version::from(value.version),
         ))
     }
 }
