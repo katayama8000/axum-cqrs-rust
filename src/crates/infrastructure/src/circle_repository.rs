@@ -6,7 +6,11 @@ use domain::{
         circle::Circle,
         member::Member,
         value_object::{
-            circle_id::CircleId, grade::Grade, major::Major, member_id::MemberId, version,
+            circle_id::CircleId,
+            grade::Grade,
+            major::Major,
+            member_id::MemberId,
+            version::{self, Version},
         },
     },
     interface::circle_repository_interface::CircleRepositoryInterface,
@@ -64,6 +68,7 @@ struct CircleData {
     owner: MemberData,
     capacity: i16,
     members: Vec<MemberData>,
+    version: u32,
 }
 
 impl std::convert::From<Circle> for CircleData {
@@ -74,6 +79,7 @@ impl std::convert::From<Circle> for CircleData {
             owner: MemberData::from(circle.owner),
             capacity: circle.capacity,
             members: circle.members.into_iter().map(MemberData::from).collect(),
+            version: circle.version.into(),
         }
     }
 }
@@ -97,6 +103,7 @@ impl std::convert::TryFrom<CircleData> for Circle {
                 .into_iter()
                 .map(Member::try_from)
                 .collect::<Result<Vec<Member>, Error>>()?,
+            Version::from(data.version),
         ))
     }
 }

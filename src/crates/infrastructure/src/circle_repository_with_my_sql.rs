@@ -64,6 +64,7 @@ impl CircleRepositoryInterface for CircleRepositoryWithMySql {
             owner,
             capacity: circle_row.get::<i16, _>("capacity"),
             members,
+            version: circle_row.get::<u32, _>("version"),
         };
 
         Ok(Circle::try_from(circle_data)?)

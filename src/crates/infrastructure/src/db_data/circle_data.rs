@@ -3,7 +3,7 @@ use std::str::FromStr;
 use domain::aggregate::{
     circle::Circle,
     member::Member,
-    value_object::{circle_id::CircleId, member_id::MemberId},
+    value_object::{circle_id::CircleId, member_id::MemberId, version::Version},
 };
 
 use super::member_data::MemberData;
@@ -16,6 +16,7 @@ pub struct CircleData {
     pub owner: MemberData,
     pub capacity: i16,
     pub members: Vec<MemberData>,
+    pub version: u32,
 }
 
 impl std::convert::TryFrom<CircleData> for Circle {
@@ -36,12 +37,15 @@ impl std::convert::TryFrom<CircleData> for Circle {
             .ok_or_else(|| anyhow::Error::msg("Owner not found"))?
             .clone();
 
+        let version = Version::from(data.version);
+
         Ok(Circle {
             id: circle_id,
             name: data.name,
             capacity: data.capacity,
             owner,
             members,
+            version,
         })
     }
 }
@@ -55,6 +59,7 @@ impl std::convert::From<Circle> for CircleData {
             owner: MemberData::from(circle.owner),
             capacity: circle.capacity as i16,
             members: circle.members.into_iter().map(MemberData::from).collect(),
+            version: circle.version.into(),
         }
     }
 }
