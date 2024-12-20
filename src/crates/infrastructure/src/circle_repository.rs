@@ -97,6 +97,7 @@ impl std::convert::TryFrom<CircleData> for Circle {
                 data.owner.age,
                 Grade::try_from(data.owner.grade)?,
                 Major::from(data.owner.major.as_str()),
+                Version::from(data.version),
             ),
             data.capacity,
             data.members
@@ -115,6 +116,7 @@ struct MemberData {
     age: i16,
     grade: i16,
     major: String,
+    version: u32,
 }
 
 impl std::convert::From<Member> for MemberData {
@@ -125,6 +127,7 @@ impl std::convert::From<Member> for MemberData {
             age: value.age,
             grade: value.grade.into(),
             major: value.major.into(),
+            version: value.version.into(),
         }
     }
 }
@@ -139,6 +142,7 @@ impl std::convert::TryFrom<MemberData> for Member {
             value.age,
             Grade::try_from(value.grade)?,
             Major::from(value.major.as_str()),
+            Version::from(value.version),
         ))
     }
 }

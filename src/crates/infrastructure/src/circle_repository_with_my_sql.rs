@@ -48,6 +48,7 @@ impl CircleRepositoryInterface for CircleRepositoryWithMySql {
                 age: member.get::<i16, _>("age"),
                 grade: member.get::<i16, _>("grade"),
                 major: member.get::<String, _>("major"),
+                version: member.get::<u32, _>("version"),
             })
             .collect();
 

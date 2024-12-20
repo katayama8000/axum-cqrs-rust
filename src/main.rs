@@ -153,6 +153,7 @@ mod tests {
                 21,
                 Grade::try_from(3)?,
                 Major::Music,
+                Version::new(),
             ),
             10,
             vec![],

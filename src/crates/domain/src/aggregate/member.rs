@@ -1,4 +1,4 @@
-use super::value_object::{grade::Grade, major::Major, member_id::MemberId};
+use super::value_object::{grade::Grade, major::Major, member_id::MemberId, version::Version};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Member {
@@ -7,26 +7,36 @@ pub struct Member {
     pub age: i16,
     pub grade: Grade,
     pub major: Major,
+    pub version: Version,
 }
 
 impl Member {
     pub fn create(name: String, age: i16, grade: Grade, major: Major) -> Self {
-        Member {
+        Self {
             id: MemberId::gen(),
             name,
             age,
             grade,
             major,
+            version: Version::new(),
         }
     }
 
-    pub fn reconstruct(id: MemberId, name: String, age: i16, grade: Grade, major: Major) -> Self {
-        Member {
+    pub fn reconstruct(
+        id: MemberId,
+        name: String,
+        age: i16,
+        grade: Grade,
+        major: Major,
+        version: Version,
+    ) -> Self {
+        Self {
             id,
             name,
             age,
             grade,
             major,
+            version,
         }
     }
 
