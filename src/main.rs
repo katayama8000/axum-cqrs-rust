@@ -53,9 +53,12 @@ async fn main() -> Result<(), ()> {
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
         .await
-        .unwrap();
-    println!("Listening on: {}", listener.local_addr().unwrap());
-    axum::serve(listener, app).await.unwrap();
+        .expect("server should bind to port");
+    println!(
+        "Listening on: {}",
+        listener.local_addr().expect("server should bind to port")
+    );
+    axum::serve(listener, app).await.expect("server should run");
     Ok(())
 }
 
