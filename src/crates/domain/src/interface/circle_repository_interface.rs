@@ -10,7 +10,7 @@ use anyhow::Error;
 #[async_trait::async_trait]
 pub trait CircleRepositoryInterface: Send + Sync {
     async fn find_by_id(&self, circle_id: &CircleId) -> Result<Circle, Error>;
-    async fn store(&self, current: Option<Version>, circle: &Circle) -> Result<(), Error>;
+    async fn store(&self, current_version: Option<Version>, circle: &Circle) -> Result<(), Error>;
     async fn delete(&self, circle: &Circle) -> Result<(), Error>;
 }
 

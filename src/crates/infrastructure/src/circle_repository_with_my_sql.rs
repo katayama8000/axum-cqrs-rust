@@ -78,10 +78,10 @@ impl CircleRepositoryInterface for CircleRepositoryWithMySql {
     ) -> Result<(), anyhow::Error> {
         match version {
             Some(_version) => {
-                unimplemented!("store_circle with version")
+                unimplemented!("update_circle")
             }
             None => {
-                unimplemented!("store_circle without version")
+                unimplemented!("create_circle")
             }
         }
     }
