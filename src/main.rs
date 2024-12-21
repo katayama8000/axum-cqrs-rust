@@ -239,6 +239,7 @@ mod tests {
                         &UpdateCircleRequestBody {
                             circle_name: Some("Football club".to_string()),
                             capacity: Some(20),
+                            version: 1,
                         },
                     )?))?,
             )

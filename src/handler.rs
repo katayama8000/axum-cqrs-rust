@@ -141,6 +141,7 @@ pub struct UpdateCircleInputParam {
 pub struct UpdateCircleRequestBody {
     pub circle_name: Option<String>,
     pub capacity: Option<i16>,
+    pub version: u32,
 }
 
 impl UpdateCircleRequestBody {
@@ -149,6 +150,7 @@ impl UpdateCircleRequestBody {
             circle_id: id,
             circle_name: self.circle_name,
             capacity: self.capacity,
+            version: self.version,
         }
     }
 }
@@ -178,8 +180,9 @@ pub async fn handle_update_circle(
             tracing::error!("error: {:?}", e);
             match e {
                 update_circle::Error::InvalidInput => Err(StatusCode::BAD_REQUEST),
-                update_circle::Error::Duplicate => Err(StatusCode::CONFLICT),
+                update_circle::Error::Duplicate => Err(StatusCode::BAD_REQUEST),
                 update_circle::Error::Circle => Err(StatusCode::INTERNAL_SERVER_ERROR),
+                update_circle::Error::VersionMismatch => Err(StatusCode::CONFLICT),
             }
         }
     }

@@ -3,7 +3,7 @@ use std::{str::FromStr, sync::Arc};
 use serde::Deserialize;
 
 use domain::{
-    aggregate::value_object::circle_id::CircleId,
+    aggregate::value_object::{circle_id::CircleId, version::Version},
     interface::{
         circle_duplicate_checker_interface::CircleDuplicateCheckerInterface,
         circle_repository_interface::CircleRepositoryInterface,
@@ -15,6 +15,7 @@ pub enum Error {
     Circle,
     Duplicate,
     InvalidInput,
+    VersionMismatch,
 }
 
 #[derive(Debug, Deserialize)]
@@ -22,6 +23,7 @@ pub struct Input {
     pub circle_id: String,
     pub circle_name: Option<String>,
     pub capacity: Option<i16>,
+    pub version: u32,
 }
 
 #[derive(Debug)]
@@ -36,10 +38,12 @@ pub async fn handle(
         circle_id,
         circle_name,
         capacity,
+        version,
     }: Input,
 ) -> Result<Output, Error> {
     // check input
     let circle_id = CircleId::from_str(circle_id.as_str()).map_err(|_| Error::InvalidInput)?;
+    let version = Version::from(version);
 
     // find the circle
     let circle = circle_repository
@@ -58,10 +62,14 @@ pub async fn handle(
         .await
         .map_err(|_| Error::Duplicate)?;
 
+    // check version
+    if circle.version != version {
+        return Err(Error::VersionMismatch);
+    }
+
     // store
-    // TODO: versioning
     circle_repository
-        .store(None, &circle)
+        .store(Some(version), &circle)
         .await
         .map_err(|_| Error::Circle)?;
 
