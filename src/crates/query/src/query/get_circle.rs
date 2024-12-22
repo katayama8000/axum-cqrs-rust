@@ -20,6 +20,5 @@ pub async fn handle(
         .get_circle(circle_id)
         .await
         .map_err(|e| anyhow::Error::msg(e.to_string()))?;
-
     Ok(Output(circle))
 }

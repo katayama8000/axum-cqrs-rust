@@ -14,4 +14,3 @@ sqlx.workspace = true
 tokio.workspace = true
 tracing = "0.1.40"
 domain = { path = "../domain" }
-query = { path = "../query" }
