@@ -9,7 +9,11 @@ use axum::{
     Router,
 };
 use command::command_handler::{CommandHandler, HasCommandHandler};
-use injectors::build_command_handler::build_command_handler;
+use handler::handle_fetch_circle;
+use injectors::{
+    build_command_handler::build_command_handler, build_query_handler::build_query_handler,
+};
+use query::query_handler::{HasQueryHandler, QueryHandler};
 
 mod config;
 mod handler;
@@ -18,11 +22,18 @@ mod injectors;
 #[derive(Clone)]
 struct AppState {
     command_handler: Arc<dyn CommandHandler + Send + Sync>,
+    query_handler: Arc<dyn QueryHandler + Send + Sync>,
 }
 
 impl AppState {
-    pub fn new(command_handler: Arc<dyn CommandHandler + Send + Sync>) -> Self {
-        Self { command_handler }
+    pub fn new(
+        command_handler: Arc<dyn CommandHandler + Send + Sync>,
+        query_handler: Arc<dyn QueryHandler + Send + Sync>,
+    ) -> Self {
+        Self {
+            command_handler,
+            query_handler,
+        }
     }
 }
 
@@ -32,10 +43,17 @@ impl HasCommandHandler for AppState {
     }
 }
 
+impl HasQueryHandler for AppState {
+    fn query_handler(&self) -> Arc<dyn QueryHandler + Send + Sync> {
+        self.query_handler.clone()
+    }
+}
+
 fn router() -> Router<AppState> {
     Router::new()
         .route("/version", get(handle_get_version))
-        // .route("/circle", get(handle_fetch_all))
+        .route("/circle", get(handle_fetch_circle))
+        .route("/circle/:id", get(handle_fetch_circle))
         .route("/circle", post(handle_create_circle))
         .route("/circle/:id", put(handle_update_circle))
 }
@@ -47,7 +65,8 @@ async fn main() -> Result<(), ()> {
     let pool = connect().await.expect("database should connect");
 
     let command_handler = build_command_handler(pool.clone());
-    let state = AppState::new(Arc::new(command_handler));
+    let query_handler = build_query_handler(pool.clone());
+    let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
 
     let app = router().with_state(state);
 
@@ -88,9 +107,8 @@ mod tests {
     async fn test_version() -> anyhow::Result<()> {
         let pool = connect_test().await.expect("database should connect");
         let command_handler = build_command_handler(pool.clone());
-        let state = AppState {
-            command_handler: Arc::new(command_handler),
-        };
+        let query_handler = build_query_handler(pool.clone());
+        let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
         let app = router().with_state(state);
         let response = app
             .oneshot(
@@ -115,9 +133,8 @@ mod tests {
     async fn test_create_circle() -> anyhow::Result<()> {
         let pool = connect_test().await.expect("database should connect");
         let command_handler = build_command_handler(pool.clone());
-        let state = AppState {
-            command_handler: Arc::new(command_handler),
-        };
+        let query_handler = build_query_handler(pool.clone());
+        let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
         let app = router().with_state(state.clone());
         let response = app
             .oneshot(
@@ -171,9 +188,8 @@ mod tests {
     async fn test_fetch_circle() -> anyhow::Result<()> {
         let pool = connect_test().await.expect("database should connect");
         let command_handler = build_command_handler(pool.clone());
-        let state = AppState {
-            command_handler: Arc::new(command_handler),
-        };
+        let query_handler = build_query_handler(pool.clone());
+        let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
         let app = router().with_state(state);
         let unexist_circle_id = 0;
         let response = app
@@ -224,9 +240,8 @@ mod tests {
     async fn test_update_circle() -> anyhow::Result<()> {
         let pool = connect_test().await.expect("database should connect");
         let command_handler = build_command_handler(pool.clone());
-        let state = AppState {
-            command_handler: Arc::new(command_handler),
-        };
+        let query_handler = build_query_handler(pool.clone());
+        let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
         let app = router().with_state(state.clone());
         let (circle_id, _) = build_circle(&app).await?;
         let update_response = app
