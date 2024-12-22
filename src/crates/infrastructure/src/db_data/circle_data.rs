@@ -28,7 +28,7 @@ impl std::convert::TryFrom<CircleData> for Circle {
         let members = data
             .members
             .into_iter()
-            .map(|member_data| MemberData::try_into(member_data))
+            .map(|member_data| member_data.try_into())
             .collect::<Result<Vec<Member>, _>>()?;
 
         let owner = members
@@ -57,7 +57,7 @@ impl std::convert::From<Circle> for CircleData {
             name: circle.name,
             owner_id: circle.owner.clone().id.into(),
             owner: MemberData::from(circle.owner),
-            capacity: circle.capacity as i16,
+            capacity: circle.capacity,
             members: circle.members.into_iter().map(MemberData::from).collect(),
             version: circle.version.into(),
         }

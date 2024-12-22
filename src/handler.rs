@@ -164,24 +164,14 @@ pub async fn handle_fetch_circle(
         None => match state.query_handler.list_circles().await {
             Ok(output) => {
                 let circles = output.0;
-                let circle = circles.first().unwrap();
-                match state
-                    .query_handler
-                    .get_circle(get_circle::Input {
-                        circle_id: circle.id.to_string(),
-                    })
-                    .await
-                {
-                    Ok(output) => {
-                        let mut res = Vec::new();
-                        res.push(FetcheCircleResponseBody::from(output));
-                        Ok(Json(res))
-                    }
-                    Err(e) => {
-                        tracing::error!("error: {:?}", e);
-                        Err("error".to_string())
-                    }
-                }
+                Ok(Json(
+                    circles
+                        .into_iter()
+                        .map(|circle| {
+                            FetcheCircleResponseBody::from(get_circle::Output(Some(circle)))
+                        })
+                        .collect(),
+                ))
             }
             Err(e) => {
                 tracing::error!("error: {:?}", e);
