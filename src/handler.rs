@@ -141,6 +141,8 @@ impl std::convert::From<get_circle::Output> for FetcheCircleResponseBody {
     }
 }
 
+// TODO: impl From<list_circles::Output> for FetcheCircleResponseBody
+
 pub async fn handle_fetch_circle(
     State(state): State<AppState>,
     Path(param): Path<FetchCircleInputParam>,
