@@ -1,11 +1,10 @@
 use std::sync::Arc;
 
-use crate::{
-    interface::circle_reader_interface::HasCircleReader,
-    query::{
-        get_circle::{self},
-        list_circles::{self},
-    },
+use domain::interface::query::circle_reader_interface::HasCircleReader;
+
+use crate::query::{
+    get_circle::{self},
+    list_circles::{self},
 };
 
 #[async_trait::async_trait]

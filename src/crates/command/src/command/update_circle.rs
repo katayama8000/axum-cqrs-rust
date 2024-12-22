@@ -5,8 +5,8 @@ use serde::Deserialize;
 use domain::{
     aggregate::value_object::{circle_id::CircleId, version::Version},
     interface::{
-        circle_duplicate_checker_interface::CircleDuplicateCheckerInterface,
-        circle_repository_interface::CircleRepositoryInterface,
+        command::circle_duplicate_checker_interface::CircleDuplicateCheckerInterface,
+        command::circle_repository_interface::CircleRepositoryInterface,
     },
 };
 

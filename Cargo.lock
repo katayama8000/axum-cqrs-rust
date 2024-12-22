@@ -828,7 +828,6 @@ dependencies = [
  "anyhow",
  "async-trait",
  "domain",
- "query",
  "serde",
  "serde_json",
  "sqlx",

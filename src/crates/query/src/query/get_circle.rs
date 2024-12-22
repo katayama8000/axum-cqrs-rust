@@ -3,7 +3,7 @@ use std::{str::FromStr, sync::Arc};
 use anyhow::Ok;
 use domain::aggregate::{circle::Circle, value_object::circle_id::CircleId};
 
-use crate::interface::circle_reader_interface::CircleReaderInterface;
+use domain::interface::query::circle_reader_interface::CircleReaderInterface;
 
 pub struct Input {
     pub circle_id: String,
@@ -20,6 +20,5 @@ pub async fn handle(
         .get_circle(circle_id)
         .await
         .map_err(|e| anyhow::Error::msg(e.to_string()))?;
-
     Ok(Output(circle))
 }

@@ -1,7 +1,5 @@
-use query::{
-    interface::circle_reader_interface::{CircleReaderInterface, HasCircleReader},
-    query_handler::QueryHandler,
-};
+use domain::interface::query::circle_reader_interface::{CircleReaderInterface, HasCircleReader};
+use query::query_handler::QueryHandler;
 use std::sync::Arc;
 
 pub(crate) struct QueryHandlerImpl {

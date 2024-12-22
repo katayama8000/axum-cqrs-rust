@@ -13,7 +13,7 @@ use domain::{
             version::{self, Version},
         },
     },
-    interface::circle_repository_interface::CircleRepositoryInterface,
+    interface::command::circle_repository_interface::CircleRepositoryInterface,
 };
 
 use super::db::Db;
@@ -155,7 +155,7 @@ mod tests {
             member::Member,
             value_object::{grade::Grade, major::Major},
         },
-        interface::circle_repository_interface::CircleRepositoryInterface,
+        interface::command::circle_repository_interface::CircleRepositoryInterface,
     };
 
     use super::CircleRepository;

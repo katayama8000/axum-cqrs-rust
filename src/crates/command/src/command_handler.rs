@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use domain::interface::{
-    circle_duplicate_checker_interface::HasCircleDuplicateCheckerInterface,
-    circle_repository_interface::HasCircleRepositoryInterface,
+    command::circle_duplicate_checker_interface::HasCircleDuplicateCheckerInterface,
+    command::circle_repository_interface::HasCircleRepositoryInterface,
 };
 
 use crate::command::{create_circle, update_circle};

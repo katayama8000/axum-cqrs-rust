@@ -3,7 +3,7 @@ use domain::{
         circle::Circle,
         value_object::{circle_id::CircleId, version},
     },
-    interface::circle_repository_interface::CircleRepositoryInterface,
+    interface::command::circle_repository_interface::CircleRepositoryInterface,
 };
 use sqlx::Row;
 

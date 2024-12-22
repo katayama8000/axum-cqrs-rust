@@ -1,5 +1,7 @@
-use domain::aggregate::{circle::Circle, value_object::circle_id::CircleId};
-use query::interface::circle_reader_interface::CircleReaderInterface;
+use domain::{
+    aggregate::{circle::Circle, value_object::circle_id::CircleId},
+    interface::query::circle_reader_interface::CircleReaderInterface,
+};
 
 use anyhow::Error;
 use sqlx::MySqlPool;
