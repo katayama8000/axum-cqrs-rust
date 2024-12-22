@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    interface::get_circle_reader::HasGetCircleReader,
+    interface::get_circle_reader_interface::HasGetCircleReader,
     query::get_circle::{self, handle},
 };
 

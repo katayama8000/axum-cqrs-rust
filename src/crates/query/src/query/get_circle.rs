@@ -3,7 +3,7 @@ use std::{str::FromStr, sync::Arc};
 use anyhow::Ok;
 use domain::aggregate::{circle::Circle, value_object::circle_id::CircleId};
 
-use crate::interface::get_circle_reader::GetCircleReaderInterface;
+use crate::interface::get_circle_reader_interface::GetCircleReaderInterface;
 
 pub struct Input {
     pub circle_id: String,
