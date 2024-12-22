@@ -1,20 +1,25 @@
 use std::sync::Arc;
 
 use crate::{
-    interface::get_circle_reader_interface::HasGetCircleReader,
-    query::get_circle::{self, handle},
+    interface::circle_reader_interface::HasCircleReader,
+    query::{
+        get_circle::{self},
+        list_circles::{self},
+    },
 };
 
 #[async_trait::async_trait]
-pub trait QueryHandler: HasGetCircleReader {
+pub trait QueryHandler: HasCircleReader {
     async fn get_circle(
         &self,
         input: get_circle::Input,
     ) -> Result<get_circle::Output, anyhow::Error> {
-        handle(self.get_circle_reader(), input).await
+        get_circle::handle(self.circle_reader(), input).await
     }
 
-    // async fn list_circles() -> Result<list_circles::Output, list_circles::Error>;
+    async fn list_circles(&self) -> Result<list_circles::Output, anyhow::Error> {
+        list_circles::handle(self.circle_reader(), list_circles::Input {}).await
+    }
 }
 
 pub trait HasQueryHandler {

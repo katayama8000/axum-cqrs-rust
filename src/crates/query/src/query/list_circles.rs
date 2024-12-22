@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::interface::list_circles_reader_interface::ListCirclesReaderInterface;
+use crate::interface::circle_reader_interface::CircleReaderInterface;
 use domain::aggregate::circle::Circle;
 
 pub struct Input;
@@ -8,12 +8,12 @@ pub struct Input;
 pub struct Output(pub Vec<Circle>);
 
 pub async fn handle(
-    list_circles_reader: Arc<dyn ListCirclesReaderInterface + Send + Sync>,
+    circle_reader: Arc<dyn CircleReaderInterface + Send + Sync>,
     Input {}: Input,
 ) -> Result<Output, anyhow::Error> {
-    let circles = list_circles_reader
+    let circles = circle_reader
         .list_circles()
         .await
         .map_err(|e| anyhow::Error::msg(e.to_string()))?;
-    Ok(circles)
+    Ok(Output(circles))
 }

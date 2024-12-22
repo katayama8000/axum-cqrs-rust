@@ -1,26 +1,16 @@
 use query::{
-    interface::{
-        get_circle_reader_interface::{GetCircleReaderInterface, HasGetCircleReader},
-        list_circles_reader_interface::{HasListCirclesReader, ListCirclesReaderInterface},
-    },
+    interface::circle_reader_interface::{CircleReaderInterface, HasCircleReader},
     query_handler::QueryHandler,
 };
 use std::sync::Arc;
 
 pub(crate) struct QueryHandlerImpl {
-    pub(crate) get_circle_reader: Arc<dyn GetCircleReaderInterface + Send + Sync>,
-    pub(crate) list_circles_reader: Arc<dyn ListCirclesReaderInterface + Send + Sync>,
+    pub(crate) circle_reader: Arc<dyn CircleReaderInterface + Send + Sync>,
 }
 
-impl HasGetCircleReader for QueryHandlerImpl {
-    fn get_circle_reader(&self) -> Arc<dyn GetCircleReaderInterface + Send + Sync> {
-        self.get_circle_reader.clone()
-    }
-}
-
-impl HasListCirclesReader for QueryHandlerImpl {
-    fn list_circles_reader(&self) -> Arc<dyn ListCirclesReaderInterface + Send + Sync> {
-        self.list_circles_reader.clone()
+impl HasCircleReader for QueryHandlerImpl {
+    fn circle_reader(&self) -> Arc<dyn CircleReaderInterface + Send + Sync> {
+        self.circle_reader.clone()
     }
 }
 
