@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use domain::aggregate::{circle::Circle, value_object::circle_id::CircleId};
+use crate::aggregate::{circle::Circle, value_object::circle_id::CircleId};
 
 #[async_trait::async_trait]
 pub trait CircleReaderInterface: Send + Sync {

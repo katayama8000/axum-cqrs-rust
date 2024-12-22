@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
-use crate::interface::circle_reader_interface::CircleReaderInterface;
-use domain::aggregate::circle::Circle;
+use domain::{
+    aggregate::circle::Circle, interface::query::circle_reader_interface::CircleReaderInterface,
+};
 
 pub struct Input;
 
