@@ -9,8 +9,8 @@ use domain::{
         value_object::{grade::Grade, major::Major},
     },
     interface::{
-        circle_duplicate_checker_interface::CircleDuplicateCheckerInterface,
-        circle_repository_interface::CircleRepositoryInterface,
+        command::circle_duplicate_checker_interface::CircleDuplicateCheckerInterface,
+        command::circle_repository_interface::CircleRepositoryInterface,
     },
 };
 

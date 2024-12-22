@@ -2,7 +2,7 @@ use anyhow::{Error, Result};
 use async_trait::async_trait;
 use domain::{
     aggregate::circle::Circle,
-    interface::circle_duplicate_checker_interface::CircleDuplicateCheckerInterface,
+    interface::command::circle_duplicate_checker_interface::CircleDuplicateCheckerInterface,
 };
 use sqlx::MySqlPool;
 

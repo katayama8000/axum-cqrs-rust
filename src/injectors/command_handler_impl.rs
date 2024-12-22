@@ -2,10 +2,12 @@ use std::sync::Arc;
 
 use command::command_handler::CommandHandler;
 use domain::interface::{
-    circle_duplicate_checker_interface::{
+    command::circle_duplicate_checker_interface::{
         CircleDuplicateCheckerInterface, HasCircleDuplicateCheckerInterface,
     },
-    circle_repository_interface::{CircleRepositoryInterface, HasCircleRepositoryInterface},
+    command::circle_repository_interface::{
+        CircleRepositoryInterface, HasCircleRepositoryInterface,
+    },
 };
 
 pub(crate) struct CommandHandlerImpl {
