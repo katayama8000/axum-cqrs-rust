@@ -9,6 +9,7 @@ use axum::{
     Router,
 };
 use command::command_handler::{CommandHandler, HasCommandHandler};
+use handler::handle_fetch_circle;
 use injectors::{
     build_command_handler::build_command_handler, build_query_handler::build_query_handler,
 };
@@ -51,7 +52,7 @@ impl HasQueryHandler for AppState {
 fn router() -> Router<AppState> {
     Router::new()
         .route("/version", get(handle_get_version))
-        // .route("/circle", get(handle_fetch_all))
+        .route("/circle/:id", get(handle_fetch_circle))
         .route("/circle", post(handle_create_circle))
         .route("/circle/:id", put(handle_update_circle))
 }

@@ -7,6 +7,7 @@ use command::command::{
     create_circle::{self, Input, Output},
     update_circle,
 };
+use query::query::get_circle;
 use serde::Deserialize;
 use std::env;
 
@@ -84,53 +85,78 @@ pub async fn handle_create_circle(
     }
 }
 
-// #[derive(Debug, Deserialize)]
-// pub struct FetchCircleInputParam {
-//     id: String,
-// }
+#[derive(Debug, Deserialize)]
+pub struct FetchCircleInputParam {
+    id: String,
+}
 
-// #[derive(Debug, serde::Deserialize, serde::Serialize)]
-// pub struct FetcheCircleResponseBody {
-//     pub circle_id: String,
-//     pub circle_name: String,
-//     pub capacity: i16,
-//     pub owner: MemberOutput,
-//     pub members: Vec<MemberOutput>,
-// }
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct FetcheCircleResponseBody {
+    pub circle_id: String,
+    pub circle_name: String,
+    pub capacity: i16,
+    pub owner: MemberOutput,
+    pub members: Vec<MemberOutput>,
+}
 
-// impl std::convert::From<FetchCircleOutput> for FetcheCircleResponseBody {
-//     fn from(
-//         FetchCircleOutput {
-//             circle_id,
-//             circle_name,
-//             capacity,
-//             owner,
-//             members,
-//         }: FetchCircleOutput,
-//     ) -> Self {
-//         FetcheCircleResponseBody {
-//             circle_id,
-//             circle_name,
-//             capacity,
-//             owner,
-//             members,
-//         }
-//     }
-// }
+#[derive(Debug, Deserialize, serde::Serialize)]
+pub struct MemberOutput {
+    pub id: String,
+    pub name: String,
+    pub age: i16,
+    pub grade: i16,
+    pub major: String,
+}
 
-// pub async fn handle_fetch_circle(
-//     State(state): State<AppState>,
-//     Path(param): Path<FetchCircleInputParam>,
-// ) -> Result<Json<FetcheCircleResponseBody>, String> {
-//     let fetch_circle_input = FetchCircleInput::new(param.id);
-//     let usecase = FetchCircleUsecase::new(state.circle_repository);
-//     usecase
-//         .execute(fetch_circle_input)
-//         .await
-//         .map(FetcheCircleResponseBody::from)
-//         .map(Json)
-//         .map_err(|e| e.to_string())
-// }
+impl std::convert::From<get_circle::Output> for FetcheCircleResponseBody {
+    fn from(output: get_circle::Output) -> Self {
+        let circle = output.0.unwrap();
+        let owner = circle.owner;
+        let members = circle.members;
+        FetcheCircleResponseBody {
+            circle_id: circle.id.to_string(),
+            circle_name: circle.name,
+            capacity: circle.capacity,
+            owner: MemberOutput {
+                id: owner.id.to_string(),
+                name: owner.name,
+                age: owner.age,
+                grade: owner.grade.into(),
+                major: owner.major.into(),
+            },
+            members: members
+                .into_iter()
+                .map(|member| MemberOutput {
+                    id: member.id.to_string(),
+                    name: member.name,
+                    age: member.age,
+                    grade: member.grade.into(),
+                    major: member.major.into(),
+                })
+                .collect(),
+        }
+    }
+}
+
+pub async fn handle_fetch_circle(
+    State(state): State<AppState>,
+    Path(param): Path<FetchCircleInputParam>,
+) -> Result<Json<FetcheCircleResponseBody>, String> {
+    let circle_id = param.id;
+    match state
+        .query_handler
+        .get_circle(get_circle::Input {
+            circle_id: circle_id.clone(),
+        })
+        .await
+    {
+        Ok(output) => Ok(Json(FetcheCircleResponseBody::from(output))),
+        Err(e) => {
+            tracing::error!("error: {:?}", e);
+            Err("error".to_string())
+        }
+    }
+}
 
 #[derive(Debug, Deserialize)]
 pub struct UpdateCircleInputParam {
