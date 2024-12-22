@@ -15,6 +15,7 @@ pub async fn handle_get_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
 
+// create
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct CreateCircleRequestBody {
     pub circle_name: String,
@@ -85,9 +86,10 @@ pub async fn handle_create_circle(
     }
 }
 
+// fetch
 #[derive(Debug, Deserialize)]
 pub struct FetchCircleInputParam {
-    id: String,
+    id: Option<String>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -110,7 +112,8 @@ pub struct MemberOutput {
 
 impl std::convert::From<get_circle::Output> for FetcheCircleResponseBody {
     fn from(output: get_circle::Output) -> Self {
-        let circle = output.0.unwrap();
+        // FIXME: expect("fixme")
+        let circle = output.0.expect("fixme");
         let owner = circle.owner;
         let members = circle.members;
         FetcheCircleResponseBody {
@@ -141,23 +144,54 @@ impl std::convert::From<get_circle::Output> for FetcheCircleResponseBody {
 pub async fn handle_fetch_circle(
     State(state): State<AppState>,
     Path(param): Path<FetchCircleInputParam>,
-) -> Result<Json<FetcheCircleResponseBody>, String> {
-    let circle_id = param.id;
-    match state
-        .query_handler
-        .get_circle(get_circle::Input {
-            circle_id: circle_id.clone(),
-        })
-        .await
-    {
-        Ok(output) => Ok(Json(FetcheCircleResponseBody::from(output))),
-        Err(e) => {
-            tracing::error!("error: {:?}", e);
-            Err("error".to_string())
+) -> Result<Json<Vec<FetcheCircleResponseBody>>, String> {
+    match param.id {
+        Some(id) => {
+            match state
+                .query_handler
+                .get_circle(get_circle::Input {
+                    circle_id: id.clone(),
+                })
+                .await
+            {
+                Ok(output) => Ok(Json(vec![FetcheCircleResponseBody::from(output)])),
+                Err(e) => {
+                    tracing::error!("error: {:?}", e);
+                    Err("error".to_string())
+                }
+            }
         }
+        None => match state.query_handler.list_circles().await {
+            Ok(output) => {
+                let circles = output.0;
+                let circle = circles.first().unwrap();
+                match state
+                    .query_handler
+                    .get_circle(get_circle::Input {
+                        circle_id: circle.id.to_string(),
+                    })
+                    .await
+                {
+                    Ok(output) => {
+                        let mut res = Vec::new();
+                        res.push(FetcheCircleResponseBody::from(output));
+                        Ok(Json(res))
+                    }
+                    Err(e) => {
+                        tracing::error!("error: {:?}", e);
+                        Err("error".to_string())
+                    }
+                }
+            }
+            Err(e) => {
+                tracing::error!("error: {:?}", e);
+                Err("error".to_string())
+            }
+        },
     }
 }
 
+// update
 #[derive(Debug, Deserialize)]
 pub struct UpdateCircleInputParam {
     id: String,
