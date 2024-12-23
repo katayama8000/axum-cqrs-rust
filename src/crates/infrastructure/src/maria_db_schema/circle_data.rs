@@ -9,7 +9,7 @@ use domain::aggregate::{
 use super::member_data::MemberData;
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
-pub struct CircleData {
+pub(crate) struct CircleData {
     pub id: String,
     pub name: String,
     pub owner_id: String,

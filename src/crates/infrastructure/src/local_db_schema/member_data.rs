@@ -2,17 +2,18 @@ use std::str::FromStr;
 
 use domain::aggregate::{
     member::Member,
-    value_object::{grade::Grade, major::Major, member_id::MemberId, version::Version},
+    value_object::member_id::MemberId,
+    value_object::{grade::Grade, major::Major, version::Version},
 };
 
-#[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
-pub struct MemberData {
-    pub id: String,
-    pub name: String,
-    pub age: i16,
-    pub grade: i16,
-    pub major: String,
-    pub version: u32,
+#[derive(serde::Deserialize, serde::Serialize)]
+pub(crate) struct MemberData {
+    pub(crate) id: String,
+    pub(crate) name: String,
+    pub(crate) age: i16,
+    pub(crate) grade: i16,
+    pub(crate) major: String,
+    pub(crate) version: u32,
 }
 
 impl std::convert::From<Member> for MemberData {
