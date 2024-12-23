@@ -7,7 +7,7 @@ use domain::{
 };
 use sqlx::Row;
 
-use super::db_data::{circle_data::CircleData, member_data::MemberData};
+use super::maria_db_schema::{circle_data::CircleData, member_data::MemberData};
 
 #[derive(Clone, Debug)]
 pub struct CircleRepositoryWithMySql {

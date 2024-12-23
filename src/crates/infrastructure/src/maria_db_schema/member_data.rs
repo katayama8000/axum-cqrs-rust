@@ -6,7 +6,7 @@ use domain::aggregate::{
 };
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
-pub struct MemberData {
+pub(crate) struct MemberData {
     pub id: String,
     pub name: String,
     pub age: i16,

@@ -3,4 +3,4 @@ pub mod circle_reader;
 pub mod circle_repository;
 pub mod circle_repository_with_my_sql;
 pub mod db;
-pub mod db_data;
+pub mod maria_db_schema;
