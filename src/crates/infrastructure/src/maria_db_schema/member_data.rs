@@ -7,12 +7,12 @@ use domain::aggregate::{
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
 pub(crate) struct MemberData {
-    pub id: String,
-    pub name: String,
-    pub age: i16,
-    pub grade: i16,
-    pub major: String,
-    pub version: u32,
+    pub(crate) id: String,
+    pub(crate) name: String,
+    pub(crate) age: i16,
+    pub(crate) grade: i16,
+    pub(crate) major: String,
+    pub(crate) version: u32,
 }
 
 impl std::convert::From<Member> for MemberData {
