@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use infrastructure::{
-    circle_duplicate_checker::CircleDuplicateCheckerWithMySql,
+    circle_duplicate_checker_with_my_sql::CircleDuplicateCheckerWithMySql,
     circle_repository_with_my_sql::CircleRepositoryWithMySql,
 };
 

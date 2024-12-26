@@ -1,5 +1,4 @@
 use anyhow::{Error, Result};
-use async_trait::async_trait;
 use domain::{
     aggregate::circle::Circle,
     interface::command::circle_duplicate_checker_interface::CircleDuplicateCheckerInterface,
@@ -17,7 +16,7 @@ impl CircleDuplicateCheckerWithMySql {
     }
 }
 
-#[async_trait]
+#[async_trait::async_trait]
 impl CircleDuplicateCheckerInterface for CircleDuplicateCheckerWithMySql {
     async fn check_circle_duplicate(&self, circle: &Circle) -> Result<(), Error> {
         let query = "SELECT * FROM circles WHERE name = ?";
