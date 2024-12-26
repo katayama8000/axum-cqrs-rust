@@ -71,6 +71,62 @@ impl CircleReaderInterface for CircleReader {
     }
 
     async fn list_circles(&self) -> Result<Vec<Circle>, Error> {
-        unimplemented!("list_circles")
+        let circle_query = sqlx::query("SELECT * FROM circles");
+
+        let circle_rows = circle_query.fetch_all(&self.db).await.map_err(|e| {
+            eprintln!("Failed to fetch circles: {:?}", e);
+            anyhow::Error::msg("Failed to fetch circles")
+        })?;
+
+        let member_query = sqlx::query("SELECT * FROM members");
+
+        let members_rows = member_query.fetch_all(&self.db).await.map_err(|e| {
+            eprintln!("Failed to fetch members: {:?}", e);
+            anyhow::Error::msg("Failed to fetch members")
+        })?;
+
+        let members: Vec<MemberData> = members_rows
+            .into_iter()
+            .map(|member| MemberData {
+                id: member.get::<String, _>("id"),
+                name: member.get::<String, _>("name"),
+                age: member.get::<i16, _>("age"),
+                grade: member.get::<i16, _>("grade"),
+                major: member.get::<String, _>("major"),
+                version: member.get::<u32, _>("version"),
+            })
+            .collect();
+
+        let circles: Vec<CircleData> = circle_rows
+            .into_iter()
+            .map(|circle| {
+                let owner: MemberData = members
+                    .iter()
+                    .find(|member| member.id == circle.get::<String, _>("owner_id"))
+                    .ok_or_else(|| anyhow::Error::msg("Owner not found"))?
+                    .clone();
+
+                let members: Vec<MemberData> = members
+                    .iter()
+                    .filter(|member| member.id == circle.get::<String, _>("id"))
+                    .cloned()
+                    .collect();
+
+                Ok(CircleData {
+                    id: circle.get::<String, _>("id"),
+                    name: circle.get::<String, _>("name"),
+                    owner_id: circle.get::<String, _>("owner_id"),
+                    owner,
+                    capacity: circle.get::<i16, _>("capacity"),
+                    members,
+                    version: circle.get::<u32, _>("version"),
+                })
+            })
+            .collect::<Result<Vec<CircleData>, Error>>()?;
+
+        Ok(circles
+            .into_iter()
+            .map(|circle_data| Circle::try_from(circle_data))
+            .collect::<Result<Vec<Circle>, Error>>()?)
     }
 }
