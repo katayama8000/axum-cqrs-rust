@@ -15,7 +15,7 @@ edition = "2021"
 [dependencies]
 tokio.workspace = true
 anyhow.workspace = true
-axum = { version = "0.7.9", features = ["macros"] }
+axum = { version = "0.8.1", features = ["macros"] }
 dotenv = "0.15.0"
 serde.workspace = true
 serde_json = "1.0.134"
@@ -33,12 +33,12 @@ query = { path = "./src/crates/query" }
 
 [workspace.dependencies]
 anyhow = "1.0.95"
-async-trait = "0.1.83"
+async-trait = "0.1.84"
 mockall = "0.13.1"
 tokio = { version = "1.42.0", features = ["full"] }
-serde = { version = "1.0.216", features = ["derive"] }
+serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1"
-sqlx = { version = "0.8.2", features = ["mysql", "runtime-tokio-native-tls"] }
+sqlx = { version = "0.8.3", features = ["mysql", "runtime-tokio-native-tls"] }
 
 [dev-dependencies]
 tower = { version = "0.5.2", features = ["util"] }
