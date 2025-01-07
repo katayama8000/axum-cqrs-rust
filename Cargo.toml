@@ -33,7 +33,7 @@ query = { path = "./src/crates/query" }
 
 [workspace.dependencies]
 anyhow = "1.0.95"
-async-trait = "0.1.84"
+async-trait = "0.1.85"
 mockall = "0.13.1"
 tokio = { version = "1.42.0", features = ["full"] }
 serde = { version = "1.0.217", features = ["derive"] }
