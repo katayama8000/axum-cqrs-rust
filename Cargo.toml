@@ -3,7 +3,7 @@ members = [
     "src/crates/infrastructure",
     "src/crates/domain",
     "src/crates/command",
-    "src/crates/query",
+    "src/crates/query", "src/crates/event",
 ]
 [package]
 name = "app"
