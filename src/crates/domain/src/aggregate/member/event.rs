@@ -37,6 +37,16 @@ pub struct MemberCreated {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct MemberUpdated {
+    pub member_id: String,
+    pub name: String,
+    pub age: i16,
+    pub grade: String,
+    pub major: String,
+    pub version: i64,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct MemberDeleted {
     pub member_id: String,
     pub version: i64,

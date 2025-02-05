@@ -35,6 +35,14 @@ pub struct CircleCreated {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct CircleUpdated {
+    pub circle_id: String,
+    pub name: String,
+    pub capacity: i16,
+    pub version: i64,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct CircleDeleted {
     pub circle_id: String,
     pub version: i64,
