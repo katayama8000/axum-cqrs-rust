@@ -3,6 +3,7 @@ use super::{
     value_object::{circle_id::CircleId, grade::Grade, version::Version},
 };
 use anyhow::{Error, Result};
+mod event;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Circle {
