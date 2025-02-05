@@ -18,7 +18,7 @@ anyhow.workspace = true
 axum = { version = "0.8.1", features = ["macros"] }
 dotenv = "0.15.0"
 serde.workspace = true
-serde_json = "1.0.134"
+serde_json = "1.0.138"
 sqlx.workspace = true
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = [
@@ -33,9 +33,9 @@ query = { path = "./src/crates/query" }
 
 [workspace.dependencies]
 anyhow = "1.0.95"
-async-trait = "0.1.84"
+async-trait = "0.1.86"
 mockall = "0.13.1"
-tokio = { version = "1.42.0", features = ["full"] }
+tokio = { version = "1.43.0", features = ["full"] }
 serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1"
 sqlx = { version = "0.8.3", features = ["mysql", "runtime-tokio-native-tls"] }
