@@ -1,4 +1,5 @@
 use super::value_object::{grade::Grade, major::Major, member_id::MemberId, version::Version};
+mod event;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Member {
