@@ -11,6 +11,7 @@ async-trait.workspace = true
 chrono = "0.4.38"
 mockall.workspace = true
 rand = "0.8.4"
+serde = { version = "1.0.130", features = ["derive"] }
 
 
 [features]

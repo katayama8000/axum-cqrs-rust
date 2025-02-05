@@ -1,5 +1,4 @@
 use std::fmt;
-use std::hash::{Hash, Hasher};
 
 use rand::distributions::{Alphanumeric, DistString};
 
