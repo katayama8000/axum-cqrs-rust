@@ -1,9 +1,10 @@
 use super::{
     member::Member,
-    value_object::{circle_id::CircleId, grade::Grade, version::Version},
+    value_object::{circle_id::CircleId, event_id, grade::Grade, version::Version},
 };
 use anyhow::{Error, Result};
-mod event;
+use event::Event;
+pub mod event;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Circle {
@@ -16,20 +17,6 @@ pub struct Circle {
 }
 
 impl Circle {
-    pub fn create(name: String, owner: Member, capacity: i16) -> Result<Self> {
-        Self::validate_owner(&owner)?;
-        Self::validate_capacity(capacity)?;
-
-        Ok(Self {
-            id: CircleId::gen(),
-            name,
-            owner,
-            capacity,
-            members: vec![],
-            version: Version::new(),
-        })
-    }
-
     pub fn reconstruct(
         id: CircleId,
         name: String,
@@ -48,17 +35,61 @@ impl Circle {
         }
     }
 
-    pub fn update(self, name: Option<String>, capacity: Option<i16>) -> Result<Self> {
+    pub fn create(name: String, owner: Member, capacity: i16) -> Result<(Self, Event)> {
+        Self::validate_owner(&owner)?;
+        Self::validate_capacity(capacity)?;
+        let circle_id = CircleId::gen();
+        let event_id = event_id::EventId::gen();
+
+        let event = Event::new(
+            event::EventData::CircleCreated(event::CircleCreated {
+                circle_id: owner.id.to_string(),
+                name: name.clone(),
+                capacity,
+            }),
+            circle_id.clone(),
+            event_id,
+            Version::new(),
+        );
+
+        let circle = Self {
+            id: circle_id,
+            name,
+            capacity,
+            owner,
+            members: vec![],
+            version: Version::new(),
+        };
+
+        Ok((circle, event))
+    }
+
+    pub fn update(self, name: Option<String>, capacity: Option<i16>) -> Result<(Self, Event)> {
         if let Some(new_capacity) = capacity {
             Self::validate_capacity(new_capacity)?;
         }
 
-        Ok(Self {
-            name: name.unwrap_or(self.name),
-            capacity: capacity.unwrap_or(self.capacity),
-            version: self.version.next(),
-            ..self
-        })
+        let event_id = event_id::EventId::gen();
+        let event = Event::new(
+            event::EventData::CircleUpdated(event::CircleUpdated {
+                circle_id: self.id.to_string(),
+                name: name.clone(),
+                capacity: capacity.clone(),
+            }),
+            self.id.clone(),
+            event_id,
+            self.version.next(),
+        );
+
+        Ok((
+            Self {
+                name: name.unwrap_or(self.name),
+                capacity: capacity.unwrap_or(self.capacity),
+                version: self.version.next(),
+                ..self
+            },
+            event,
+        ))
     }
 
     pub fn add_member(&mut self, member: Member) -> Result<()> {

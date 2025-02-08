@@ -57,7 +57,7 @@ impl CircleRepositoryInterface for CircleRepository {
 mod tests {
     use domain::{
         aggregate::{
-            circle::Circle,
+            circle::{event::Event, Circle},
             member::Member,
             value_object::{grade::Grade, major::Major},
         },
@@ -70,7 +70,7 @@ mod tests {
     #[ignore]
     #[tokio::test]
     async fn test() -> anyhow::Result<()> {
-        let mut circle1 = build_circle()?;
+        let (mut circle1, _event) = build_circle()?;
         let repository = CircleRepository::new();
         assert!(repository.find_by_id(&circle1.id).await.is_err());
         repository.store(None, &circle1).await?;
@@ -83,11 +83,12 @@ mod tests {
         Ok(())
     }
 
-    fn build_circle() -> anyhow::Result<Circle> {
+    fn build_circle() -> anyhow::Result<(Circle, Event)> {
         Circle::create(
             "Music club".to_string(),
             Member::create("member_name1".to_string(), 21, Grade::Third, Major::Art),
             3,
         )
+        .map(|(circle, event)| (circle, event))
     }
 }

@@ -1,18 +1,31 @@
 use crate::aggregate::value_object::{circle_id::CircleId, event_id::EventId, version::Version};
 
 #[derive(Clone, Debug)]
-pub(crate) struct Event {
+pub struct Event {
     pub data: EventData,
     pub circle_id: CircleId,
     pub id: EventId,
     pub version: Version,
 }
 
+impl Event {
+    pub fn new<D>(data: D, circle_id: CircleId, id: EventId, version: Version) -> Self
+    where
+        D: Into<EventData>,
+    {
+        Self {
+            data: data.into(),
+            circle_id,
+            id,
+            version,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EventData {
     CircleCreated(CircleCreated),
     CircleUpdated(CircleUpdated),
-    CircleDeleted(CircleDeleted),
 }
 
 impl From<CircleCreated> for EventData {
@@ -27,30 +40,16 @@ impl From<CircleUpdated> for EventData {
     }
 }
 
-impl From<CircleDeleted> for EventData {
-    fn from(deleted: CircleDeleted) -> Self {
-        Self::CircleDeleted(deleted)
-    }
-}
-
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct CircleCreated {
     pub circle_id: String,
     pub name: String,
     pub capacity: i16,
-    pub version: i64,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct CircleUpdated {
     pub circle_id: String,
-    pub name: String,
-    pub capacity: i16,
-    pub version: i64,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-pub struct CircleDeleted {
-    pub circle_id: String,
-    pub version: i64,
+    pub name: Option<String>,
+    pub capacity: Option<i16>,
 }
