@@ -4,7 +4,7 @@ use serde::Deserialize;
 
 use domain::{
     aggregate::{
-        circle::{event, Circle},
+        circle::Circle,
         member::Member,
         value_object::{grade::Grade, major::Major},
     },
@@ -55,7 +55,7 @@ pub async fn handle(
     let owner = Member::create(owner_name, owner_age, grade, major);
 
     // create
-    let (circle, event) =
+    let (circle, _event) =
         Circle::create(circle_name, owner, capacity).map_err(|_| Error::InvalidInput)?;
 
     // check duplicate

@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::aggregate::value_object::{circle_id::CircleId, event_id::EventId, version::Version};
 
 #[derive(Clone, Debug)]
@@ -22,7 +24,9 @@ impl Event {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+// this is a schema for command database
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", tag = "name")]
 pub enum EventData {
     CircleCreated(CircleCreated),
     CircleUpdated(CircleUpdated),

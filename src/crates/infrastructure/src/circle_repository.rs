@@ -23,11 +23,13 @@ impl CircleRepository {
 
 #[async_trait::async_trait]
 impl CircleRepositoryInterface for CircleRepository {
-    async fn find_by_id(&self, circle_id: &CircleId) -> Result<Circle, Error> {
-        match self.db.get::<CircleData, _>(&circle_id.to_string())? {
-            Some(data) => Ok(Circle::try_from(data)?),
-            None => Err(Error::msg("Circle not found")),
-        }
+    async fn find_by_id(&self, _circle_id: &CircleId) -> Result<Circle, Error> {
+        // match self.db.get::<CircleData, _>(&circle_id.to_string())? {
+        //     Some(data) => Ok(Circle::try_from(data)?),
+        //     None => Err(Error::msg("Circle not found")),
+        // }
+
+        unimplemented!()
     }
 
     async fn store(

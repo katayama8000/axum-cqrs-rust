@@ -1,6 +1,7 @@
 use crate::aggregate::value_object::{circle_id::CircleId, event_id::EventId, version::Version};
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 pub(crate) struct Event {
     pub data: EventData,
     pub member_id: CircleId,

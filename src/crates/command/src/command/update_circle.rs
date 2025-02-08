@@ -3,10 +3,7 @@ use std::{str::FromStr, sync::Arc};
 use serde::Deserialize;
 
 use domain::{
-    aggregate::{
-        circle::event,
-        value_object::{circle_id::CircleId, version::Version},
-    },
+    aggregate::value_object::{circle_id::CircleId, version::Version},
     interface::command::{
         circle_duplicate_checker_interface::CircleDuplicateCheckerInterface,
         circle_repository_interface::CircleRepositoryInterface,
@@ -55,7 +52,7 @@ pub async fn handle(
         .map_err(|_| Error::Circle)?;
 
     // update
-    let (circle, event) = circle
+    let (circle, _event) = circle
         .update(circle_name, capacity)
         .map_err(|_| Error::InvalidInput)?;
 
