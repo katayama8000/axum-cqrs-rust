@@ -1,6 +1,8 @@
+use std::str::FromStr;
+
 use super::{
     member::Member,
-    value_object::{circle_id::CircleId, event_id, grade::Grade, version::Version},
+    value_object::{circle_id::CircleId, event_id, grade::Grade, major::Major, version::Version},
 };
 use anyhow::{Error, Result};
 use event::Event;
@@ -42,6 +44,7 @@ impl Circle {
         let event_id = event_id::EventId::gen();
 
         let event = Event::new(
+            // Add owner to circleCreated event
             event::EventData::CircleCreated(event::CircleCreated {
                 circle_id: owner.id.to_string(),
                 name: name.clone(),
@@ -51,16 +54,7 @@ impl Circle {
             event_id,
             Version::new(),
         );
-
-        let circle = Self {
-            id: circle_id,
-            name,
-            capacity,
-            owner,
-            members: vec![],
-            version: Version::new(),
-        };
-
+        let circle = Self::create_from_created_event(event.clone());
         Ok((circle, event))
     }
 
@@ -80,16 +74,8 @@ impl Circle {
             event_id,
             self.version.next(),
         );
-
-        Ok((
-            Self {
-                name: name.unwrap_or(self.name),
-                capacity: capacity.unwrap_or(self.capacity),
-                version: self.version.next(),
-                ..self
-            },
-            event,
-        ))
+        let updated_circle = self.update_from_updated_event(event.clone());
+        Ok((updated_circle, event))
     }
 
     pub fn add_member(&mut self, member: Member) -> Result<()> {
@@ -123,7 +109,42 @@ impl Circle {
         &self.name
     }
 
+    // Private helper methods for event sourcing
+
+    fn create_from_created_event(event: Event) -> Self {
+        let dummy_member = Member::create(
+            "dummy".to_string(),
+            20,
+            Grade::Third,
+            Major::ComputerScience,
+        );
+        match event.data {
+            event::EventData::CircleCreated(data) => Self {
+                id: CircleId::from_str(data.circle_id.as_str()).unwrap(),
+                name: data.name,
+                capacity: data.capacity,
+                owner: dummy_member,
+                members: vec![],
+                version: Version::new(),
+            },
+            _ => panic!("Invalid event data"),
+        }
+    }
+
+    fn update_from_updated_event(self, event: Event) -> Self {
+        match event.data {
+            event::EventData::CircleUpdated(data) => Self {
+                name: data.name.unwrap_or(self.name),
+                capacity: data.capacity.unwrap_or(self.capacity),
+                version: self.version.next(),
+                ..self
+            },
+            _ => panic!("Invalid event data"),
+        }
+    }
+
     // Private helper methods
+
     fn is_full(&self) -> bool {
         self.members.len() + 1 >= self.capacity as usize
     }
