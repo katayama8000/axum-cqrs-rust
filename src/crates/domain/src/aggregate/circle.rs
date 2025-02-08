@@ -17,22 +17,15 @@ pub struct Circle {
 }
 
 impl Circle {
-    pub fn reconstruct(
-        id: CircleId,
-        name: String,
-        owner: Member,
-        capacity: i16,
-        members: Vec<Member>,
-        version: Version,
-    ) -> Self {
-        Self {
-            id,
-            name,
-            owner,
-            capacity,
-            members,
-            version,
+    pub fn reconstruct(events: Vec<Event>) -> Self {
+        let mut state = match events.first() {
+            Some(first_event) => Self::create_from_created_event(first_event.clone()),
+            None => unreachable!("No events to reconstruct"),
+        };
+        for event in events.iter().skip(1) {
+            state.apply_event(event);
         }
+        state
     }
 
     pub fn create(name: String, owner: Member, capacity: i16) -> Result<(Self, Event)> {
