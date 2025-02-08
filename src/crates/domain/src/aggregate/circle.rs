@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use super::{
     member::Member,
     value_object::{circle_id::CircleId, event_id, grade::Grade, major::Major, version::Version},
@@ -46,7 +44,6 @@ impl Circle {
         let event = Event::new(
             // Add owner to circleCreated event
             event::EventData::CircleCreated(event::CircleCreated {
-                circle_id: owner.id.to_string(),
                 name: name.clone(),
                 capacity,
             }),
@@ -54,8 +51,8 @@ impl Circle {
             event_id,
             Version::new(),
         );
-        let circle = Self::create_from_created_event(event.clone());
-        Ok((circle, event))
+        let state = Self::create_from_created_event(event.clone());
+        Ok((state, event))
     }
 
     pub fn update(self, name: Option<String>, capacity: Option<i16>) -> Result<(Self, Event)> {
@@ -66,7 +63,6 @@ impl Circle {
         let event_id = event_id::EventId::gen();
         let event = Event::new(
             event::EventData::CircleUpdated(event::CircleUpdated {
-                circle_id: self.id.to_string(),
                 name: name.clone(),
                 capacity: capacity.clone(),
             }),
@@ -74,8 +70,9 @@ impl Circle {
             event_id,
             self.version.next(),
         );
-        let updated_circle = self.update_from_updated_event(event.clone());
-        Ok((updated_circle, event))
+        let mut state = self.clone();
+        state.apply_event(&event);
+        Ok((state, event))
     }
 
     pub fn add_member(&mut self, member: Member) -> Result<()> {
@@ -120,7 +117,7 @@ impl Circle {
         );
         match event.data {
             event::EventData::CircleCreated(data) => Self {
-                id: CircleId::from_str(data.circle_id.as_str()).unwrap(),
+                id: event.circle_id,
                 name: data.name,
                 capacity: data.capacity,
                 owner: dummy_member,
@@ -131,15 +128,18 @@ impl Circle {
         }
     }
 
-    fn update_from_updated_event(self, event: Event) -> Self {
-        match event.data {
-            event::EventData::CircleUpdated(data) => Self {
-                name: data.name.unwrap_or(self.name),
-                capacity: data.capacity.unwrap_or(self.capacity),
-                version: self.version.next(),
-                ..self
-            },
-            _ => panic!("Invalid event data"),
+    fn apply_event(&mut self, event: &Event) {
+        match &event.data {
+            event::EventData::CircleCreated(data) => {
+                self.name = data.name.clone();
+                self.capacity = data.capacity;
+                self.version = event.version.clone();
+            }
+            event::EventData::CircleUpdated(data) => {
+                self.name = data.name.clone().unwrap_or(self.name.clone());
+                self.capacity = data.capacity.unwrap_or(self.capacity);
+                self.version = event.version.clone();
+            }
         }
     }
 
