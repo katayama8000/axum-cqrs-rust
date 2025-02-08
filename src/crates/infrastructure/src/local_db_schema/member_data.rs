@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use domain::aggregate::{
-    member::Member,
+    circle::member::Member,
     value_object::member_id::MemberId,
     value_object::{grade::Grade, major::Major, version::Version},
 };
