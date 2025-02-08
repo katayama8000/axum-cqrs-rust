@@ -11,12 +11,19 @@ pub(crate) struct Event {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EventData {
     CircleCreated(CircleCreated),
+    CircleUpdated(CircleUpdated),
     CircleDeleted(CircleDeleted),
 }
 
 impl From<CircleCreated> for EventData {
     fn from(created: CircleCreated) -> Self {
         Self::CircleCreated(created)
+    }
+}
+
+impl From<CircleUpdated> for EventData {
+    fn from(updated: CircleUpdated) -> Self {
+        Self::CircleUpdated(updated)
     }
 }
 
