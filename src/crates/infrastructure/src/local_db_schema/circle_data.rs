@@ -1,12 +1,4 @@
-use std::str::FromStr;
-
-use domain::aggregate::{
-    circle::Circle,
-    member::Member,
-    value_object::{
-        circle_id::CircleId, grade::Grade, major::Major, member_id::MemberId, version::Version,
-    },
-};
+use domain::aggregate::circle::Circle;
 
 use super::member_data::MemberData;
 
@@ -33,27 +25,27 @@ impl std::convert::From<Circle> for CircleData {
     }
 }
 
-impl std::convert::TryFrom<CircleData> for Circle {
-    type Error = anyhow::Error;
+// impl std::convert::TryFrom<CircleData> for Circle {
+//     type Error = anyhow::Error;
 
-    fn try_from(data: CircleData) -> Result<Self, Self::Error> {
-        Ok(Circle::reconstruct(
-            CircleId::from_str(&data.id)?,
-            data.name,
-            Member::reconstruct(
-                MemberId::from_str(&data.owner.id)?,
-                data.owner.name,
-                data.owner.age,
-                Grade::try_from(data.owner.grade)?,
-                Major::from(data.owner.major.as_str()),
-                Version::from(data.version),
-            ),
-            data.capacity,
-            data.members
-                .into_iter()
-                .map(Member::try_from)
-                .collect::<Result<Vec<Member>, anyhow::Error>>()?,
-            Version::from(data.version),
-        ))
-    }
-}
+//     fn try_from(data: CircleData) -> Result<Self, Self::Error> {
+//         Ok(Circle::reconstruct(
+//             CircleId::from_str(&data.id)?,
+//             data.name,
+//             Member::reconstruct(
+//                 MemberId::from_str(&data.owner.id)?,
+//                 data.owner.name,
+//                 data.owner.age,
+//                 Grade::try_from(data.owner.grade)?,
+//                 Major::from(data.owner.major.as_str()),
+//                 Version::from(data.version),
+//             ),
+//             data.capacity,
+//             data.members
+//                 .into_iter()
+//                 .map(Member::try_from)
+//                 .collect::<Result<Vec<Member>, anyhow::Error>>()?,
+//             Version::from(data.version),
+//         ))
+//     }
+// }

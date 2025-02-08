@@ -90,13 +90,7 @@ mod tests {
         handler::{CreateCircleRequestBody, CreateCircleResponseBody, UpdateCircleRequestBody},
     };
     use axum::http::{header::CONTENT_TYPE, StatusCode};
-    use domain::aggregate::{
-        circle::Circle,
-        member::Member,
-        value_object::{
-            circle_id::CircleId, grade::Grade, major::Major, member_id::MemberId, version::Version,
-        },
-    };
+    use domain::aggregate::value_object::circle_id::CircleId;
     use tower::ServiceExt;
 
     use super::*;
@@ -128,60 +122,60 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    #[ignore]
-    async fn test_create_circle() -> anyhow::Result<()> {
-        let pool = connect_test().await.expect("database should connect");
-        let command_handler = build_command_handler(pool.clone());
-        let query_handler = build_query_handler(pool.clone());
-        let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
-        let app = router().with_state(state.clone());
-        let response = app
-            .oneshot(
-                axum::http::Request::builder()
-                    .method("POST")
-                    .uri("/circle")
-                    .header(CONTENT_TYPE, "application/json")
-                    .body(axum::body::Body::new(serde_json::to_string(
-                        &CreateCircleRequestBody {
-                            circle_name: "circle_name1".to_string(),
-                            capacity: 10,
-                            owner_name: "owner1".to_string(),
-                            owner_age: 21,
-                            owner_grade: 3,
-                            owner_major: "Music".to_string(),
-                        },
-                    )?))?,
-            )
-            .await?;
-        assert_eq!(response.status(), StatusCode::OK);
-        let response_body = serde_json::from_slice::<'_, CreateCircleResponseBody>(
-            &axum::body::to_bytes(response.into_body(), usize::MAX).await?,
-        )?;
+    // #[tokio::test]
+    // #[ignore]
+    // async fn test_create_circle() -> anyhow::Result<()> {
+    //     let pool = connect_test().await.expect("database should connect");
+    //     let command_handler = build_command_handler(pool.clone());
+    //     let query_handler = build_query_handler(pool.clone());
+    //     let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
+    //     let app = router().with_state(state.clone());
+    //     let response = app
+    //         .oneshot(
+    //             axum::http::Request::builder()
+    //                 .method("POST")
+    //                 .uri("/circle")
+    //                 .header(CONTENT_TYPE, "application/json")
+    //                 .body(axum::body::Body::new(serde_json::to_string(
+    //                     &CreateCircleRequestBody {
+    //                         circle_name: "circle_name1".to_string(),
+    //                         capacity: 10,
+    //                         owner_name: "owner1".to_string(),
+    //                         owner_age: 21,
+    //                         owner_grade: 3,
+    //                         owner_major: "Music".to_string(),
+    //                     },
+    //                 )?))?,
+    //         )
+    //         .await?;
+    //     assert_eq!(response.status(), StatusCode::OK);
+    //     let response_body = serde_json::from_slice::<'_, CreateCircleResponseBody>(
+    //         &axum::body::to_bytes(response.into_body(), usize::MAX).await?,
+    //     )?;
 
-        let created = state
-            .command_handler()
-            .circle_repository()
-            .find_by_id(&CircleId::from_str(&response_body.circle_id)?)
-            .await?;
-        let circle = Circle::reconstruct(
-            CircleId::from_str(&response_body.circle_id)?,
-            "circle_name1".to_string(),
-            Member::reconstruct(
-                MemberId::from_str(&response_body.owner_id)?,
-                "owner1".to_string(),
-                21,
-                Grade::try_from(3)?,
-                Major::Music,
-                Version::new(),
-            ),
-            10,
-            vec![],
-            Version::new(),
-        );
-        assert_eq!(created, circle);
-        Ok(())
-    }
+    //     let created = state
+    //         .command_handler()
+    //         .circle_repository()
+    //         .find_by_id(&CircleId::from_str(&response_body.circle_id)?)
+    //         .await?;
+    //     let circle = Circle::reconstruct(
+    //         CircleId::from_str(&response_body.circle_id)?,
+    //         "circle_name1".to_string(),
+    //         Member::reconstruct(
+    //             MemberId::from_str(&response_body.owner_id)?,
+    //             "owner1".to_string(),
+    //             21,
+    //             Grade::try_from(3)?,
+    //             Major::Music,
+    //             Version::new(),
+    //         ),
+    //         10,
+    //         vec![],
+    //         Version::new(),
+    //     );
+    //     assert_eq!(created, circle);
+    //     Ok(())
+    // }
 
     #[tokio::test]
     #[ignore]

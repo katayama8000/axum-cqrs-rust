@@ -1,9 +1,10 @@
 use super::{
     member::Member,
-    value_object::{circle_id::CircleId, grade::Grade, version::Version},
+    value_object::{circle_id::CircleId, event_id, grade::Grade, major::Major, version::Version},
 };
 use anyhow::{Error, Result};
-mod event;
+use event::Event;
+pub mod event;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Circle {
@@ -16,49 +17,55 @@ pub struct Circle {
 }
 
 impl Circle {
-    pub fn create(name: String, owner: Member, capacity: i16) -> Result<Self> {
+    pub fn reconstruct(events: Vec<Event>) -> Self {
+        let mut state = match events.first() {
+            Some(first_event) => Self::create_from_created_event(first_event.clone()),
+            None => unreachable!("No events to reconstruct"),
+        };
+        for event in events.iter().skip(1) {
+            state.apply_event(event);
+        }
+        state
+    }
+
+    pub fn create(name: String, owner: Member, capacity: i16) -> Result<(Self, Event)> {
         Self::validate_owner(&owner)?;
         Self::validate_capacity(capacity)?;
+        let circle_id = CircleId::gen();
+        let event_id = event_id::EventId::gen();
 
-        Ok(Self {
-            id: CircleId::gen(),
-            name,
-            owner,
-            capacity,
-            members: vec![],
-            version: Version::new(),
-        })
+        let event = Event::new(
+            // Add owner to circleCreated event
+            event::EventData::CircleCreated(event::CircleCreated {
+                name: name.clone(),
+                capacity,
+            }),
+            circle_id.clone(),
+            event_id,
+            Version::new(),
+        );
+        let state = Self::create_from_created_event(event.clone());
+        Ok((state, event))
     }
 
-    pub fn reconstruct(
-        id: CircleId,
-        name: String,
-        owner: Member,
-        capacity: i16,
-        members: Vec<Member>,
-        version: Version,
-    ) -> Self {
-        Self {
-            id,
-            name,
-            owner,
-            capacity,
-            members,
-            version,
-        }
-    }
-
-    pub fn update(self, name: Option<String>, capacity: Option<i16>) -> Result<Self> {
+    pub fn update(self, name: Option<String>, capacity: Option<i16>) -> Result<(Self, Event)> {
         if let Some(new_capacity) = capacity {
             Self::validate_capacity(new_capacity)?;
         }
 
-        Ok(Self {
-            name: name.unwrap_or(self.name),
-            capacity: capacity.unwrap_or(self.capacity),
-            version: self.version.next(),
-            ..self
-        })
+        let event_id = event_id::EventId::gen();
+        let event = Event::new(
+            event::EventData::CircleUpdated(event::CircleUpdated {
+                name: name.clone(),
+                capacity: capacity.clone(),
+            }),
+            self.id.clone(),
+            event_id,
+            self.version.next(),
+        );
+        let mut state = self.clone();
+        state.apply_event(&event);
+        Ok((state, event))
     }
 
     pub fn add_member(&mut self, member: Member) -> Result<()> {
@@ -92,7 +99,45 @@ impl Circle {
         &self.name
     }
 
+    // Private helper methods for event sourcing
+
+    fn create_from_created_event(event: Event) -> Self {
+        let dummy_member = Member::create(
+            "dummy".to_string(),
+            20,
+            Grade::Third,
+            Major::ComputerScience,
+        );
+        match event.data {
+            event::EventData::CircleCreated(data) => Self {
+                id: event.circle_id,
+                name: data.name,
+                capacity: data.capacity,
+                owner: dummy_member,
+                members: vec![],
+                version: Version::new(),
+            },
+            _ => panic!("Invalid event data"),
+        }
+    }
+
+    fn apply_event(&mut self, event: &Event) {
+        match &event.data {
+            event::EventData::CircleCreated(data) => {
+                self.name = data.name.clone();
+                self.capacity = data.capacity;
+                self.version = event.version.clone();
+            }
+            event::EventData::CircleUpdated(data) => {
+                self.name = data.name.clone().unwrap_or(self.name.clone());
+                self.capacity = data.capacity.unwrap_or(self.capacity);
+                self.version = event.version.clone();
+            }
+        }
+    }
+
     // Private helper methods
+
     fn is_full(&self) -> bool {
         self.members.len() + 1 >= self.capacity as usize
     }

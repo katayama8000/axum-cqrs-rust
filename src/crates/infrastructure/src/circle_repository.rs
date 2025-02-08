@@ -23,11 +23,13 @@ impl CircleRepository {
 
 #[async_trait::async_trait]
 impl CircleRepositoryInterface for CircleRepository {
-    async fn find_by_id(&self, circle_id: &CircleId) -> Result<Circle, Error> {
-        match self.db.get::<CircleData, _>(&circle_id.to_string())? {
-            Some(data) => Ok(Circle::try_from(data)?),
-            None => Err(Error::msg("Circle not found")),
-        }
+    async fn find_by_id(&self, _circle_id: &CircleId) -> Result<Circle, Error> {
+        // match self.db.get::<CircleData, _>(&circle_id.to_string())? {
+        //     Some(data) => Ok(Circle::try_from(data)?),
+        //     None => Err(Error::msg("Circle not found")),
+        // }
+
+        unimplemented!()
     }
 
     async fn store(
@@ -57,7 +59,7 @@ impl CircleRepositoryInterface for CircleRepository {
 mod tests {
     use domain::{
         aggregate::{
-            circle::Circle,
+            circle::{event::Event, Circle},
             member::Member,
             value_object::{grade::Grade, major::Major},
         },
@@ -70,7 +72,7 @@ mod tests {
     #[ignore]
     #[tokio::test]
     async fn test() -> anyhow::Result<()> {
-        let mut circle1 = build_circle()?;
+        let (mut circle1, _event) = build_circle()?;
         let repository = CircleRepository::new();
         assert!(repository.find_by_id(&circle1.id).await.is_err());
         repository.store(None, &circle1).await?;
@@ -83,11 +85,12 @@ mod tests {
         Ok(())
     }
 
-    fn build_circle() -> anyhow::Result<Circle> {
+    fn build_circle() -> anyhow::Result<(Circle, Event)> {
         Circle::create(
             "Music club".to_string(),
             Member::create("member_name1".to_string(), 21, Grade::Third, Major::Art),
             3,
         )
+        .map(|(circle, event)| (circle, event))
     }
 }

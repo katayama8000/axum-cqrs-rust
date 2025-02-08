@@ -8,9 +8,9 @@ use domain::{
         member::Member,
         value_object::{grade::Grade, major::Major},
     },
-    interface::{
-        command::circle_duplicate_checker_interface::CircleDuplicateCheckerInterface,
-        command::circle_repository_interface::CircleRepositoryInterface,
+    interface::command::{
+        circle_duplicate_checker_interface::CircleDuplicateCheckerInterface,
+        circle_repository_interface::CircleRepositoryInterface,
     },
 };
 
@@ -53,7 +53,10 @@ pub async fn handle(
     let grade = Grade::try_from(owner_grade).map_err(|_| Error::InvalidInput)?;
     let major = Major::from(owner_major.as_str());
     let owner = Member::create(owner_name, owner_age, grade, major);
-    let circle = Circle::create(circle_name, owner, capacity).map_err(|_| Error::InvalidInput)?;
+
+    // create
+    let (circle, _event) =
+        Circle::create(circle_name, owner, capacity).map_err(|_| Error::InvalidInput)?;
 
     // check duplicate
     circle_duplicate_checker

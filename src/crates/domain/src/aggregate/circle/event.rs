@@ -1,17 +1,35 @@
+use serde::{Deserialize, Serialize};
+
 use crate::aggregate::value_object::{circle_id::CircleId, event_id::EventId, version::Version};
 
 #[derive(Clone, Debug)]
-pub(crate) struct Event {
+pub struct Event {
     pub data: EventData,
     pub circle_id: CircleId,
     pub id: EventId,
     pub version: Version,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+impl Event {
+    pub fn new<D>(data: D, circle_id: CircleId, id: EventId, version: Version) -> Self
+    where
+        D: Into<EventData>,
+    {
+        Self {
+            data: data.into(),
+            circle_id,
+            id,
+            version,
+        }
+    }
+}
+
+// this is a schema for command database
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", tag = "name")]
 pub enum EventData {
     CircleCreated(CircleCreated),
-    CircleDeleted(CircleDeleted),
+    CircleUpdated(CircleUpdated),
 }
 
 impl From<CircleCreated> for EventData {
@@ -20,30 +38,20 @@ impl From<CircleCreated> for EventData {
     }
 }
 
-impl From<CircleDeleted> for EventData {
-    fn from(deleted: CircleDeleted) -> Self {
-        Self::CircleDeleted(deleted)
+impl From<CircleUpdated> for EventData {
+    fn from(updated: CircleUpdated) -> Self {
+        Self::CircleUpdated(updated)
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct CircleCreated {
-    pub circle_id: String,
     pub name: String,
     pub capacity: i16,
-    pub version: i64,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct CircleUpdated {
-    pub circle_id: String,
-    pub name: String,
-    pub capacity: i16,
-    pub version: i64,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-pub struct CircleDeleted {
-    pub circle_id: String,
-    pub version: i64,
+    pub name: Option<String>,
+    pub capacity: Option<i16>,
 }
