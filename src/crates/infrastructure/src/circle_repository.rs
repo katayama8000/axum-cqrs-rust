@@ -59,8 +59,7 @@ impl CircleRepositoryInterface for CircleRepository {
 mod tests {
     use domain::{
         aggregate::{
-            circle::{event::Event, Circle},
-            member::Member,
+            circle::{event::Event, member::Member, Circle},
             value_object::{grade::Grade, major::Major},
         },
         interface::command::circle_repository_interface::CircleRepositoryInterface,

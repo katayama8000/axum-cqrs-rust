@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
 use domain::aggregate::{
+    circle::member::Member,
     circle::Circle,
-    member::Member,
     value_object::{circle_id::CircleId, member_id::MemberId, version::Version},
 };
 

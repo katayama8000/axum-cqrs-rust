@@ -4,8 +4,7 @@ use serde::Deserialize;
 
 use domain::{
     aggregate::{
-        circle::Circle,
-        member::Member,
+        circle::{member::Member, Circle},
         value_object::{grade::Grade, major::Major},
     },
     interface::command::{

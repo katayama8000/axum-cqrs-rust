@@ -1,10 +1,11 @@
-use super::{
-    member::Member,
-    value_object::{circle_id::CircleId, event_id, grade::Grade, major::Major, version::Version},
+use super::value_object::{
+    circle_id::CircleId, event_id, grade::Grade, major::Major, version::Version,
 };
 use anyhow::{Error, Result};
 use event::Event;
 pub mod event;
+pub mod member;
+use member::Member;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Circle {
