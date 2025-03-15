@@ -52,17 +52,9 @@ impl CircleRepositoryInterface for CircleRepositoryWithMySql {
             })
             .collect();
 
-        let owner: MemberData = members
-            .iter()
-            .find(|member| member.id == circle_row.get::<String, _>("owner_id"))
-            .ok_or_else(|| anyhow::Error::msg("Owner not found"))?
-            .clone();
-
         let circle_data = CircleData {
             id: circle_row.get::<String, _>("id"),
             name: circle_row.get::<String, _>("name"),
-            owner_id: circle_row.get::<String, _>("owner_id"),
-            owner,
             capacity: circle_row.get::<i16, _>("capacity"),
             members,
             version: circle_row.get::<u32, _>("version"),
