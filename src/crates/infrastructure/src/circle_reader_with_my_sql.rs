@@ -4,7 +4,7 @@ use domain::{
 };
 use sqlx::Row;
 
-use crate::maria_db_schema::{circle_data::CircleData, member_data::MemberData};
+use crate::maria_db_schema::circle_data::CircleData;
 
 use anyhow::Error;
 
@@ -31,39 +31,10 @@ impl CircleReaderInterface for CircleReader {
             anyhow::Error::msg("Failed to fetch circle by id")
         })?;
 
-        let member_query =
-            sqlx::query("SELECT * FROM members WHERE circle_id = ?").bind(circle_id.to_string());
-
-        let members_row = member_query.fetch_all(&self.db).await.map_err(|e| {
-            eprintln!("Failed to fetch members by circle id: {:?}", e);
-            anyhow::Error::msg("Failed to fetch members by circle id")
-        })?;
-
-        let members: Vec<MemberData> = members_row
-            .into_iter()
-            .map(|member| MemberData {
-                id: member.get::<String, _>("id"),
-                name: member.get::<String, _>("name"),
-                age: member.get::<i16, _>("age"),
-                grade: member.get::<i16, _>("grade"),
-                major: member.get::<String, _>("major"),
-                version: member.get::<u32, _>("version"),
-            })
-            .collect();
-
-        let owner: MemberData = members
-            .iter()
-            .find(|member| member.id == circle_row.get::<String, _>("owner_id"))
-            .ok_or_else(|| anyhow::Error::msg("Owner not found"))?
-            .clone();
-
         let circle_data = CircleData {
             id: circle_row.get::<String, _>("id"),
             name: circle_row.get::<String, _>("name"),
-            owner_id: circle_row.get::<String, _>("owner_id"),
-            owner,
             capacity: circle_row.get::<i16, _>("capacity"),
-            members,
             version: circle_row.get::<u32, _>("version"),
         };
 
@@ -78,47 +49,13 @@ impl CircleReaderInterface for CircleReader {
             anyhow::Error::msg("Failed to fetch circles")
         })?;
 
-        let member_query = sqlx::query("SELECT * FROM members");
-
-        let members_rows = member_query.fetch_all(&self.db).await.map_err(|e| {
-            eprintln!("Failed to fetch members: {:?}", e);
-            anyhow::Error::msg("Failed to fetch members")
-        })?;
-
-        let members: Vec<MemberData> = members_rows
-            .into_iter()
-            .map(|member| MemberData {
-                id: member.get::<String, _>("id"),
-                name: member.get::<String, _>("name"),
-                age: member.get::<i16, _>("age"),
-                grade: member.get::<i16, _>("grade"),
-                major: member.get::<String, _>("major"),
-                version: member.get::<u32, _>("version"),
-            })
-            .collect();
-
         let circles: Vec<CircleData> = circle_rows
             .into_iter()
             .map(|circle| {
-                let owner: MemberData = members
-                    .iter()
-                    .find(|member| member.id == circle.get::<String, _>("owner_id"))
-                    .ok_or_else(|| anyhow::Error::msg("Owner not found"))?
-                    .clone();
-
-                let members: Vec<MemberData> = members
-                    .iter()
-                    .filter(|member| member.id == circle.get::<String, _>("id"))
-                    .cloned()
-                    .collect();
-
                 Ok(CircleData {
                     id: circle.get::<String, _>("id"),
                     name: circle.get::<String, _>("name"),
-                    owner_id: circle.get::<String, _>("owner_id"),
-                    owner,
                     capacity: circle.get::<i16, _>("capacity"),
-                    members,
                     version: circle.get::<u32, _>("version"),
                 })
             })

@@ -3,10 +3,7 @@ use std::sync::Arc;
 use serde::Deserialize;
 
 use domain::{
-    aggregate::{
-        circle::Circle,
-        value_object::{grade::Grade, major::Major},
-    },
+    aggregate::circle::Circle,
     interface::command::{
         circle_duplicate_checker_interface::CircleDuplicateCheckerInterface,
         circle_repository_interface::CircleRepositoryInterface,
@@ -39,10 +36,6 @@ pub async fn handle(
         capacity,
     }: Input,
 ) -> Result<Output, Error> {
-    // check input
-    let grade = Grade::try_from(owner_grade).map_err(|_| Error::InvalidInput)?;
-    let major = Major::from(owner_major.as_str());
-
     // create
     let (circle, _event) =
         Circle::create(circle_name, capacity).map_err(|_| Error::InvalidInput)?;

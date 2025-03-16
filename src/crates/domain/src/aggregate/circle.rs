@@ -1,6 +1,4 @@
-use super::value_object::{
-    circle_id::CircleId, event_id, grade::Grade, major::Major, version::Version,
-};
+use super::value_object::{circle_id::CircleId, event_id, version::Version};
 use anyhow::{Error, Result};
 use event::Event;
 pub mod event;
@@ -10,7 +8,6 @@ pub struct Circle {
     pub id: CircleId,
     pub name: String,
     pub capacity: i16,
-    pub members: Vec<Member>,
     pub version: Version,
 }
 
@@ -32,10 +29,10 @@ impl Circle {
         let event_id = event_id::EventId::gen();
 
         let event = Event::new(
-            event::EventData::CircleCreated {
+            event::EventData::CircleCreated(event::CircleCreated {
                 name: name.clone(),
                 capacity,
-            },
+            }),
             circle_id.clone(),
             event_id,
             Version::new(),
@@ -51,10 +48,10 @@ impl Circle {
 
         let event_id = event_id::EventId::gen();
         let event = Event::new(
-            event::EventData::CircleUpdated {
+            event::EventData::CircleUpdated(event::CircleUpdated {
                 name: name.clone(),
                 capacity: capacity.clone(),
-            },
+            }),
             self.id.clone(),
             event_id,
             self.version.next(),
@@ -62,11 +59,6 @@ impl Circle {
         let mut state = self.clone();
         state.apply_event(&event);
         Ok((state, event))
-    }
-
-    pub fn graduate(&mut self) {
-        self.members.retain(|m| m.grade != Grade::Fourth);
-        self.version = self.version.next();
     }
 
     pub fn name(&self) -> &str {
@@ -77,12 +69,11 @@ impl Circle {
 
     fn create_from_created_event(event: Event) -> Self {
         match event.data {
-            event::EventData::CircleCreated { name, capacity } => Self {
+            event::EventData::CircleCreated(event::CircleCreated { name, capacity }) => Self {
                 id: event.circle_id,
                 name,
                 capacity,
-                members: vec![],
-                version: Version::new(),
+                version: event.version,
             },
             _ => panic!("Invalid event data"),
         }
@@ -90,23 +81,17 @@ impl Circle {
 
     fn apply_event(&mut self, event: &Event) {
         match &event.data {
-            event::EventData::CircleCreated { name, capacity } => {
+            event::EventData::CircleCreated(event::CircleCreated { name, capacity }) => {
                 self.name = name.clone();
                 self.capacity = *capacity;
                 self.version = event.version.clone();
             }
-            event::EventData::CircleUpdated { name, capacity } => {
+            event::EventData::CircleUpdated(event::CircleUpdated { name, capacity }) => {
                 self.name = name.clone().unwrap_or(self.name.clone());
                 self.capacity = capacity.unwrap_or(self.capacity);
                 self.version = event.version.clone();
             }
         }
-    }
-
-    // Private helper methods
-
-    fn is_full(&self) -> bool {
-        self.members.len() + 1 >= self.capacity as usize
     }
 
     fn validate_capacity(capacity: i16) -> Result<()> {

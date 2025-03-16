@@ -7,7 +7,7 @@ use domain::{
 };
 use sqlx::Row;
 
-use super::maria_db_schema::{circle_data::CircleData, member_data::MemberData};
+use super::maria_db_schema::circle_data::CircleData;
 
 #[derive(Clone, Debug)]
 pub struct CircleRepositoryWithMySql {
@@ -32,31 +32,10 @@ impl CircleRepositoryInterface for CircleRepositoryWithMySql {
             anyhow::Error::msg("Failed to fetch circle by id")
         })?;
 
-        let member_query =
-            sqlx::query("SELECT * FROM members WHERE circle_id = ?").bind(circle_id.to_string());
-
-        let members_row = member_query.fetch_all(&self.db).await.map_err(|e| {
-            eprintln!("Failed to fetch members by circle id: {:?}", e);
-            anyhow::Error::msg("Failed to fetch members by circle id")
-        })?;
-
-        let members: Vec<MemberData> = members_row
-            .into_iter()
-            .map(|member| MemberData {
-                id: member.get::<String, _>("id"),
-                name: member.get::<String, _>("name"),
-                age: member.get::<i16, _>("age"),
-                grade: member.get::<i16, _>("grade"),
-                major: member.get::<String, _>("major"),
-                version: member.get::<u32, _>("version"),
-            })
-            .collect();
-
         let circle_data = CircleData {
             id: circle_row.get::<String, _>("id"),
             name: circle_row.get::<String, _>("name"),
             capacity: circle_row.get::<i16, _>("capacity"),
-            members,
             version: circle_row.get::<u32, _>("version"),
         };
 
