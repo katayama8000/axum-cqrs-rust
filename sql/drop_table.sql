@@ -1,2 +1,1 @@
-DROP TABLE IF EXISTS circles,
-members,
+DROP TABLE IF EXISTS circles;
