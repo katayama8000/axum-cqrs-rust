@@ -10,18 +10,18 @@ use sqlx::Row;
 use super::maria_db_schema::circle_data::CircleData;
 
 #[derive(Clone, Debug)]
-pub struct CircleRepositoryWithMySql {
+pub struct CircleRepository {
     db: sqlx::MySqlPool,
 }
 
-impl CircleRepositoryWithMySql {
+impl CircleRepository {
     pub fn new(db: sqlx::MySqlPool) -> Self {
         Self { db }
     }
 }
 
 #[async_trait::async_trait]
-impl CircleRepositoryInterface for CircleRepositoryWithMySql {
+impl CircleRepositoryInterface for CircleRepository {
     async fn find_by_id(&self, circle_id: &CircleId) -> Result<Circle, anyhow::Error> {
         tracing::info!("find_circle_by_id : {:?}", circle_id);
         let circle_query =
