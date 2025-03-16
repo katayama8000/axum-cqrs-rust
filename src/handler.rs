@@ -20,10 +20,6 @@ pub async fn handle_get_version() -> String {
 pub struct CreateCircleRequestBody {
     pub circle_name: String,
     pub capacity: i16,
-    pub owner_name: String,
-    pub owner_age: i16,
-    pub owner_grade: i16,
-    pub owner_major: String,
 }
 
 impl std::convert::From<CreateCircleRequestBody> for create_circle::Input {
@@ -31,19 +27,11 @@ impl std::convert::From<CreateCircleRequestBody> for create_circle::Input {
         CreateCircleRequestBody {
             circle_name,
             capacity,
-            owner_name,
-            owner_age,
-            owner_grade,
-            owner_major,
         }: CreateCircleRequestBody,
     ) -> Self {
         Input {
             circle_name,
             capacity,
-            owner_name,
-            owner_age,
-            owner_grade,
-            owner_major,
         }
     }
 }
@@ -51,20 +39,11 @@ impl std::convert::From<CreateCircleRequestBody> for create_circle::Input {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct CreateCircleResponseBody {
     pub circle_id: String,
-    pub owner_id: String,
 }
 
 impl std::convert::From<create_circle::Output> for CreateCircleResponseBody {
-    fn from(
-        Output {
-            circle_id,
-            owner_id,
-        }: Output,
-    ) -> Self {
-        CreateCircleResponseBody {
-            circle_id,
-            owner_id,
-        }
+    fn from(Output { circle_id }: Output) -> Self {
+        CreateCircleResponseBody { circle_id }
     }
 }
 
@@ -97,46 +76,22 @@ pub struct FetcheCircleResponseBody {
     pub circle_id: String,
     pub circle_name: String,
     pub capacity: i16,
-    pub owner: MemberOutput,
-    pub members: Vec<MemberOutput>,
-}
-
-#[derive(Debug, Deserialize, serde::Serialize)]
-pub struct MemberOutput {
-    pub id: String,
-    pub name: String,
-    pub age: i16,
-    pub grade: i16,
-    pub major: String,
 }
 
 impl std::convert::From<get_circle::Output> for FetcheCircleResponseBody {
     fn from(output: get_circle::Output) -> Self {
-        // FIXME: expect("fixme")
-        let circle = output.0.expect("fixme");
-        let owner = circle.owner;
-        let members = circle.members;
-        FetcheCircleResponseBody {
-            circle_id: circle.id.to_string(),
-            circle_name: circle.name,
-            capacity: circle.capacity,
-            owner: MemberOutput {
-                id: owner.id.to_string(),
-                name: owner.name,
-                age: owner.age,
-                grade: owner.grade.into(),
-                major: owner.major.into(),
+        match output.0 {
+            Some(circle) => FetcheCircleResponseBody {
+                circle_id: circle.id.to_string(),
+                circle_name: circle.name,
+                capacity: circle.capacity,
             },
-            members: members
-                .into_iter()
-                .map(|member| MemberOutput {
-                    id: member.id.to_string(),
-                    name: member.name,
-                    age: member.age,
-                    grade: member.grade.into(),
-                    major: member.major.into(),
-                })
-                .collect(),
+            // TODO: None の場合の処理
+            None => FetcheCircleResponseBody {
+                circle_id: "".to_string(),
+                circle_name: "".to_string(),
+                capacity: 0,
+            },
         }
     }
 }

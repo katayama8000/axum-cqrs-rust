@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use infrastructure::circle_reader_with_my_sql::CircleReader;
+use infrastructure::circle_reader::CircleReader;
 
 use super::query_handler_impl::QueryHandlerImpl;
 

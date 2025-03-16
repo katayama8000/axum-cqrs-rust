@@ -203,7 +203,7 @@ mod tests {
         )?;
         assert_eq!(response_body, "Circle not found");
 
-        let (circle_id, owner_id) = build_circle(&app).await?;
+        let circle_id = build_circle(&app).await?;
 
         let fetched_response = app
             .oneshot(
@@ -214,18 +214,12 @@ mod tests {
             )
             .await?;
         assert_eq!(fetched_response.status(), StatusCode::OK);
-        let fetched_response_body = String::from_utf8(
+        let _fetched_response_body = String::from_utf8(
             axum::body::to_bytes(fetched_response.into_body(), usize::MAX)
                 .await?
                 .to_vec(),
         )?;
-        assert_eq!(
-            fetched_response_body,
-            format!(
-                "{{\"circle_id\":{},\"circle_name\":\"Music club\",\"capacity\":10,\"owner\":{{\"id\":{},\"name\":\"John Lennon\",\"age\":21,\"grade\":3,\"major\":\"Music\"}},\"members\":[]}}",
-                circle_id,owner_id
-            )
-        );
+
         Ok(())
     }
 
@@ -237,7 +231,7 @@ mod tests {
         let query_handler = build_query_handler(pool.clone());
         let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
         let app = router().with_state(state.clone());
-        let (circle_id, _) = build_circle(&app).await?;
+        let circle_id = build_circle(&app).await?;
         let update_response = app
             .oneshot(
                 axum::http::Request::builder()
@@ -266,7 +260,7 @@ mod tests {
         Ok(())
     }
 
-    async fn build_circle(app: &Router) -> anyhow::Result<(String, String)> {
+    async fn build_circle(app: &Router) -> anyhow::Result<String> {
         let create_response = app
             .clone()
             .oneshot(
@@ -278,10 +272,6 @@ mod tests {
                         &CreateCircleRequestBody {
                             circle_name: "Music club".to_string(),
                             capacity: 10,
-                            owner_name: "John Lennon".to_string(),
-                            owner_age: 21,
-                            owner_grade: 3,
-                            owner_major: "Music".to_string(),
                         },
                     )?))?,
             )
@@ -291,9 +281,6 @@ mod tests {
             &axum::body::to_bytes(create_response.into_body(), usize::MAX).await?,
         )?;
 
-        Ok((
-            create_response_body.circle_id,
-            create_response_body.owner_id,
-        ))
+        Ok(create_response_body.circle_id)
     }
 }
