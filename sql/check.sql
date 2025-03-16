@@ -1,9 +1,1 @@
-select
-    *
-from
-    circles;
-
-select
-    *
-from
-    members;
+select * from circles;

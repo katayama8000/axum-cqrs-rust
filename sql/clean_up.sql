@@ -1,5 +1,1 @@
-DELETE FROM
-    members;
-
-DELETE FROM
-    circles;
+DELETE FROM circles;
