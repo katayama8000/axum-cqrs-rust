@@ -60,10 +60,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34ac096ce696dc2fcabef30516bb13c0a68a11d30131d3df6f04711467681b04"
 
 [[package]]
+name = "api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "axum",
+ "command",
+ "domain",
+ "query",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "app"
 version = "0.1.0-rc.1"
 dependencies = [
  "anyhow",
+ "api",
  "axum",
  "command",
  "domain",

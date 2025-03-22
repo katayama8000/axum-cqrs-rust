@@ -1,62 +1,13 @@
 use std::sync::Arc;
 
-use crate::{
-    config::connect::connect,
-    handler::{handle_create_circle, handle_get_version, handle_update_circle},
-};
-use axum::{
-    routing::{get, post, put},
-    Router,
-};
-use command::command_handler::{CommandHandler, HasCommandHandler};
-use handler::handle_fetch_circle;
+use crate::config::connect::connect;
+use api::{app_state::AppState, router::router};
 use injectors::{
     build_command_handler::build_command_handler, build_query_handler::build_query_handler,
 };
-use query::query_handler::{HasQueryHandler, QueryHandler};
 
 mod config;
-mod handler;
 mod injectors;
-
-#[derive(Clone)]
-struct AppState {
-    command_handler: Arc<dyn CommandHandler + Send + Sync>,
-    query_handler: Arc<dyn QueryHandler + Send + Sync>,
-}
-
-impl AppState {
-    pub fn new(
-        command_handler: Arc<dyn CommandHandler + Send + Sync>,
-        query_handler: Arc<dyn QueryHandler + Send + Sync>,
-    ) -> Self {
-        Self {
-            command_handler,
-            query_handler,
-        }
-    }
-}
-
-impl HasCommandHandler for AppState {
-    fn command_handler(&self) -> Arc<dyn CommandHandler + Send + Sync> {
-        self.command_handler.clone()
-    }
-}
-
-impl HasQueryHandler for AppState {
-    fn query_handler(&self) -> Arc<dyn QueryHandler + Send + Sync> {
-        self.query_handler.clone()
-    }
-}
-
-fn router() -> Router<AppState> {
-    Router::new()
-        .route("/version", get(handle_get_version))
-        .route("/circle", get(handle_fetch_circle))
-        .route("/circle/:id", get(handle_fetch_circle))
-        .route("/circle", post(handle_create_circle))
-        .route("/circle/:id", put(handle_update_circle))
-}
 
 #[tokio::main]
 async fn main() -> Result<(), ()> {
@@ -85,11 +36,16 @@ async fn main() -> Result<(), ()> {
 mod tests {
     use std::str::FromStr;
 
-    use crate::{
-        config::connect::connect_test,
+    use crate::config::connect::connect_test;
+    use api::{
+        app_state::AppState,
         handler::{CreateCircleRequestBody, CreateCircleResponseBody, UpdateCircleRequestBody},
+        router::router,
     };
-    use axum::http::{header::CONTENT_TYPE, StatusCode};
+    use axum::{
+        http::{header::CONTENT_TYPE, StatusCode},
+        Router,
+    };
     use domain::aggregate::value_object::circle_id::CircleId;
     use tower::ServiceExt;
 
@@ -250,7 +206,7 @@ mod tests {
         assert_eq!(update_response.status(), StatusCode::OK);
 
         let updated_circle = state
-            .command_handler()
+            .command_handler
             .circle_repository()
             .find_by_id(&CircleId::from_str(&circle_id)?)
             .await?;

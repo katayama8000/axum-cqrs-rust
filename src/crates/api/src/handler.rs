@@ -1,12 +1,10 @@
-use crate::AppState;
 use axum::{
     extract::{Json, Path, State},
     http::StatusCode,
 };
-use command::command::{
-    create_circle::{self, Input, Output},
-    update_circle,
-};
+
+use crate::app_state::AppState;
+use command::command::{create_circle, update_circle};
 use query::query::get_circle;
 use serde::Deserialize;
 use std::env;
@@ -29,7 +27,7 @@ impl std::convert::From<CreateCircleRequestBody> for create_circle::Input {
             capacity,
         }: CreateCircleRequestBody,
     ) -> Self {
-        Input {
+        create_circle::Input {
             circle_name,
             capacity,
         }
@@ -42,7 +40,7 @@ pub struct CreateCircleResponseBody {
 }
 
 impl std::convert::From<create_circle::Output> for CreateCircleResponseBody {
-    fn from(Output { circle_id }: Output) -> Self {
+    fn from(create_circle::Output { circle_id }: create_circle::Output) -> Self {
         CreateCircleResponseBody { circle_id }
     }
 }
@@ -51,8 +49,7 @@ pub async fn handle_create_circle(
     State(state): State<AppState>,
     Json(body): Json<CreateCircleRequestBody>,
 ) -> Result<Json<CreateCircleResponseBody>, StatusCode> {
-    let input = Input::from(body);
-    match state.command_handler.create_circle(input).await {
+    match state.command_handler.create_circle(body.into()).await {
         Ok(output) => Ok(Json(CreateCircleResponseBody::from(output))),
         Err(e) => {
             tracing::error!("error: {:?}", e);
