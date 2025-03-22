@@ -181,7 +181,7 @@ pub async fn handle_update_circle(
     match state.command_handler.update_circle(input).await {
         Ok(output) => Ok(Json(UpdateCircleResponseBody::from(output))),
         Err(e) => {
-            // tracing::error!("error: {:?}", e);
+            tracing::error!("error: {:?}", e);
             match e {
                 update_circle::Error::InvalidInput => Err(StatusCode::BAD_REQUEST),
                 update_circle::Error::Duplicate => Err(StatusCode::BAD_REQUEST),
