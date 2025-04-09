@@ -6,6 +6,9 @@
 cp .env.dist .env
 ```
 
+Do not execute this command in devcontainer. open another terminal and run it in the host machine.
+
+
 ### up
 
 ```bash
@@ -28,7 +31,6 @@ show databases;
 use mydatabase;
 show tables;
 select * from circles;
-select * from members;
 ```
 
 ### down

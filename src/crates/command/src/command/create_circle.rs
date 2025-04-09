@@ -4,10 +4,7 @@ use serde::Deserialize;
 
 use domain::{
     aggregate::circle::Circle,
-    interface::command::{
-        circle_duplicate_checker_interface::CircleDuplicateCheckerInterface,
-        circle_repository_interface::CircleRepositoryInterface,
-    },
+    interface::command::circle_repository_interface::CircleRepositoryInterface,
 };
 
 #[derive(Debug)]
@@ -30,7 +27,6 @@ pub struct Output {
 
 pub async fn handle(
     circle_repository: Arc<dyn CircleRepositoryInterface + Send + Sync>,
-    circle_duplicate_checker: Arc<dyn CircleDuplicateCheckerInterface + Send + Sync>,
     Input {
         circle_name,
         capacity,
@@ -39,12 +35,6 @@ pub async fn handle(
     // create
     let (circle, _event) =
         Circle::create(circle_name, capacity).map_err(|_| Error::InvalidInput)?;
-
-    // check duplicate
-    circle_duplicate_checker
-        .check_circle_duplicate(&circle)
-        .await
-        .map_err(|_| Error::Duplicate)?;
 
     // store
     circle_repository
