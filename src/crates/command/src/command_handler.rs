@@ -15,24 +15,14 @@ pub trait CommandHandler:
         &self,
         input: create_circle::Input,
     ) -> Result<create_circle::Output, create_circle::Error> {
-        create_circle::handle(
-            self.circle_repository(),
-            self.circle_duplicate_checker(),
-            input,
-        )
-        .await
+        create_circle::handle(self.circle_repository(), input).await
     }
 
     async fn update_circle(
         &self,
         input: update_circle::Input,
     ) -> Result<update_circle::Output, update_circle::Error> {
-        update_circle::handle(
-            self.circle_repository(),
-            self.circle_duplicate_checker(),
-            input,
-        )
-        .await
+        update_circle::handle(self.circle_repository(), input).await
     }
 }
 
