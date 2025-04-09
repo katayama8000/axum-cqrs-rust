@@ -6,6 +6,9 @@
 cp .env.dist .env
 ```
 
+Do not execute this command in devcontainer. open another terminal and run it in the host machine.
+
+
 ### up
 
 ```bash
