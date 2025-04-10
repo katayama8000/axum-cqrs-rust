@@ -61,10 +61,6 @@ impl Circle {
         Ok((state, event))
     }
 
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
     // Private helper methods for event sourcing
 
     fn create_from_created_event(event: Event) -> Self {
@@ -93,6 +89,14 @@ impl Circle {
             }
         }
     }
+
+    // Getters
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    // utility methods
 
     fn validate_capacity(capacity: i16) -> Result<()> {
         if capacity < 3 {
