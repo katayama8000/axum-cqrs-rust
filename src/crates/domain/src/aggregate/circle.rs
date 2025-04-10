@@ -12,10 +12,10 @@ pub struct Circle {
 }
 
 impl Circle {
-    pub fn reconstruct(events: Vec<Event>) -> Self {
+    pub fn from_events(events: Vec<Event>) -> Self {
         let mut state = match events.first() {
-            Some(first_event) => Self::create_from_created_event(first_event.clone()),
-            None => unreachable!("No events to reconstruct"),
+            Some(first_event) => Self::from_created_event(first_event.clone()),
+            None => unreachable!("No events to initialize Circle"),
         };
         for event in events.iter().skip(1) {
             state.apply_event(event);
@@ -37,7 +37,7 @@ impl Circle {
             event_id,
             Version::new(),
         );
-        let state = Self::create_from_created_event(event.clone());
+        let state = Self::from_created_event(event.clone());
         Ok((state, event))
     }
 
@@ -63,7 +63,7 @@ impl Circle {
 
     // Private helper methods for event sourcing
 
-    fn create_from_created_event(event: Event) -> Self {
+    fn from_created_event(event: Event) -> Self {
         match event.data {
             event::EventData::CircleCreated(event::CircleCreated { name, capacity }) => Self {
                 id: event.circle_id,
@@ -71,7 +71,7 @@ impl Circle {
                 capacity,
                 version: event.version,
             },
-            _ => panic!("Invalid event data"),
+            _ => panic!("Invalid event for creation"),
         }
     }
 
@@ -83,8 +83,12 @@ impl Circle {
                 self.version = event.version.clone();
             }
             event::EventData::CircleUpdated(event::CircleUpdated { name, capacity }) => {
-                self.name = name.clone().unwrap_or(self.name.clone());
-                self.capacity = capacity.unwrap_or(self.capacity);
+                if let Some(new_name) = name {
+                    self.name = new_name.clone();
+                }
+                if let Some(new_capacity) = capacity {
+                    self.capacity = *new_capacity;
+                }
                 self.version = event.version.clone();
             }
         }
