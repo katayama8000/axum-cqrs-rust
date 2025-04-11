@@ -8,10 +8,17 @@ pub struct Event {
     pub circle_id: CircleId,
     pub id: EventId,
     pub version: Version,
+    pub occurred_at: chrono::DateTime<chrono::Utc>,
 }
 
 impl Event {
-    pub fn new<D>(data: D, circle_id: CircleId, id: EventId, version: Version) -> Self
+    pub fn new<D>(
+        circle_id: CircleId,
+        data: D,
+        id: EventId,
+        occurred_at: chrono::DateTime<chrono::Utc>,
+        version: Version,
+    ) -> Self
     where
         D: Into<EventData>,
     {
@@ -20,6 +27,7 @@ impl Event {
             circle_id,
             id,
             version,
+            occurred_at,
         }
     }
 }

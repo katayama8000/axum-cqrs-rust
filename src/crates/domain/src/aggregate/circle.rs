@@ -29,12 +29,13 @@ impl Circle {
         let event_id = event_id::EventId::gen();
 
         let event = Event::new(
+            circle_id.clone(),
             event::EventData::CircleCreated(event::CircleCreated {
                 name: name.clone(),
                 capacity,
             }),
-            circle_id.clone(),
             event_id,
+            chrono::Utc::now(),
             Version::new(),
         );
         let state = Self::from_created_event(event.clone());
@@ -48,12 +49,13 @@ impl Circle {
 
         let event_id = event_id::EventId::gen();
         let event = Event::new(
+            self.id.clone(),
             event::EventData::CircleUpdated(event::CircleUpdated {
                 name: name.clone(),
                 capacity: capacity.clone(),
             }),
-            self.id.clone(),
             event_id,
+            chrono::Utc::now(),
             self.version.next(),
         );
         let mut state = self.clone();

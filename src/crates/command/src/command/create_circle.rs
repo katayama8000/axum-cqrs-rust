@@ -33,12 +33,11 @@ pub async fn handle(
     }: Input,
 ) -> Result<Output, Error> {
     // create
-    let (circle, _event) =
-        Circle::create(circle_name, capacity).map_err(|_| Error::InvalidInput)?;
+    let (circle, event) = Circle::create(circle_name, capacity).map_err(|_| Error::InvalidInput)?;
 
     // store
     circle_repository
-        .store(None, &circle)
+        .store(None, &event)
         .await
         .map_err(|_| Error::Circle)?;
 

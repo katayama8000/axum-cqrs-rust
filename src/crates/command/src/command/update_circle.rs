@@ -48,7 +48,7 @@ pub async fn handle(
         .map_err(|_| Error::Circle)?;
 
     // update
-    let (circle, _event) = circle
+    let (circle, event) = circle
         .update(circle_name, capacity)
         .map_err(|_| Error::InvalidInput)?;
 
@@ -59,7 +59,7 @@ pub async fn handle(
 
     // store
     circle_repository
-        .store(Some(version), &circle)
+        .store(Some(version), &event)
         .await
         .map_err(|_| Error::Circle)?;
 
