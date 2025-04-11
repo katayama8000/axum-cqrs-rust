@@ -37,7 +37,7 @@ pub async fn handle(
 
     // store
     circle_repository
-        .store(None, &event)
+        .store(None, vec![event])
         .await
         .map_err(|_| Error::Circle)?;
 

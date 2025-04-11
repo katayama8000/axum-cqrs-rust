@@ -11,6 +11,7 @@ use domain::{
     },
     interface::command::circle_repository_interface::CircleRepositoryInterface,
 };
+use sqlx::Row;
 
 use crate::maria_db_schema::circle_event_data::CircleEventData;
 
@@ -49,28 +50,58 @@ impl CircleRepositoryInterface for CircleRepository {
     async fn store(
         &self,
         version: Option<version::Version>,
-        event: &Event,
+        events: Vec<event::Event>,
     ) -> Result<(), anyhow::Error> {
-        todo!("store");
-        // sqlx::query(
-        //     r#"
-        //     INSERT INTO circle_events (
-        //         id,
-        //         circle_id,
-        //         version,
-        //         payload,
-        //         occurred_at
-        //     ) VALUES (?, ?, ?, ?, ?, ?)
-        //     "#,
-        // )
-        // .bind(event.id.to_string())
-        // .bind(event.circle_id.to_string())
-        // .bind(event.version.to_string())
-        // .bind(serde_json::to_value(&event.data)?) // イベント本体
-        // .bind(event.occurred_at.to_string())
-        // .execute(&self.db)
-        // .await?;
-        // Ok(())
+        if events.is_empty() {
+            return Ok(());
+        }
+
+        let mut transaction = self.db.begin().await?;
+
+        // Optimistic concurrency control using version
+        if let Some(expected_version) = version {
+            let circle_id = &events[0].circle_id;
+
+            // Check if the current version matches the expected version
+            let version_query = sqlx::query(
+                "SELECT MAX(version) as current_version FROM circle_events WHERE circle_id = ?",
+            )
+            .bind(circle_id.to_string());
+
+            let version_row = version_query.fetch_one(&mut *transaction).await?;
+            let current_version: Option<u32> = version_row.try_get("current_version")?;
+
+            // Convert database version to domain version
+            let current_version = match current_version {
+                Some(v) => version::Version::from(v),
+                None => version::Version::from(0), // Initial version if no events exist
+            };
+
+            // Version conflict check
+            if current_version != expected_version {
+                return Err(anyhow::Error::msg(format!(
+                    "Concurrency conflict: expected version {}, but current version is {}",
+                    expected_version, current_version
+                )));
+            }
+        }
+
+        let events_for_logging = events.clone();
+        for event in events {
+            let event_data = CircleEventData::try_from(event.clone())?;
+            sqlx::query("INSERT INTO circle_events (circle_id, id, occurred_at, version, payload) VALUES (?, ?, ?, ?, ?)")
+                .bind(event_data.circle_id)
+                .bind(event_data.id)
+                .bind(event_data.occurred_at)
+                .bind(event_data.version)
+                .bind(event_data.payload)
+                .execute(&mut *transaction)
+                .await?;
+        }
+
+        transaction.commit().await?;
+        tracing::info!("Stored circle events: {:?}", events_for_logging);
+        Ok(())
     }
 }
 
@@ -91,6 +122,26 @@ impl EventExt for Event {
             occurred_at: chrono::DateTime::parse_from_rfc3339(&event_data.occurred_at)?
                 .with_timezone(&chrono::Utc),
         })
+    }
+}
+
+// event -> circle_event_data
+impl TryFrom<event::Event> for CircleEventData {
+    type Error = anyhow::Error;
+    fn try_from(value: event::Event) -> Result<Self, Self::Error> {
+        let event_type = match value.data.clone() {
+            event::EventData::CircleCreated(_) => "circle_created",
+            event::EventData::CircleUpdated(_) => "circle_updated",
+        };
+        let event_data = CircleEventData {
+            circle_id: value.circle_id.to_string(),
+            event_type: event_type.to_string(),
+            id: value.id.to_string(),
+            occurred_at: value.occurred_at.to_rfc3339(),
+            payload: serde_json::to_string(&value.data)?,
+            version: value.version.into(),
+        };
+        Ok(event_data)
     }
 }
 

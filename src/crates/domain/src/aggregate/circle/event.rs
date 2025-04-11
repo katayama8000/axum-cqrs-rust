@@ -4,11 +4,11 @@ use crate::aggregate::value_object::{circle_id::CircleId, event_id::EventId, ver
 
 #[derive(Clone, Debug)]
 pub struct Event {
-    pub data: EventData,
     pub circle_id: CircleId,
+    pub data: EventData,
     pub id: EventId,
-    pub version: Version,
     pub occurred_at: chrono::DateTime<chrono::Utc>,
+    pub version: Version,
 }
 
 impl Event {

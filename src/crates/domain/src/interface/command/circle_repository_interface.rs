@@ -13,7 +13,7 @@ pub trait CircleRepositoryInterface: Send + Sync {
     async fn store(
         &self,
         current_version: Option<Version>,
-        events: &crate::aggregate::circle::event::Event,
+        events: Vec<crate::aggregate::circle::event::Event>,
     ) -> Result<(), Error>;
 }
 

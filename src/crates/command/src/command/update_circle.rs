@@ -59,7 +59,7 @@ pub async fn handle(
 
     // store
     circle_repository
-        .store(Some(version), &event)
+        .store(Some(version), vec![event])
         .await
         .map_err(|_| Error::Circle)?;
 
