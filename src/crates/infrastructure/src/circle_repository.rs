@@ -1,13 +1,18 @@
+use std::str::FromStr;
+
+use chrono;
 use domain::{
     aggregate::{
-        circle::Circle,
-        value_object::{circle_id::CircleId, version},
+        circle::{
+            event::{self, Event},
+            Circle,
+        },
+        value_object::{circle_id::CircleId, event_id::EventId, version},
     },
     interface::command::circle_repository_interface::CircleRepositoryInterface,
 };
-use sqlx::Row;
 
-use super::maria_db_schema::circle_data::CircleData;
+use crate::maria_db_schema::circle_event_data::CircleEventData;
 
 #[derive(Clone, Debug)]
 pub struct CircleRepository {
@@ -24,41 +29,68 @@ impl CircleRepository {
 impl CircleRepositoryInterface for CircleRepository {
     async fn find_by_id(&self, circle_id: &CircleId) -> Result<Circle, anyhow::Error> {
         tracing::info!("find_circle_by_id : {:?}", circle_id);
-        let circle_query =
-            sqlx::query("SELECT * FROM circles WHERE id = ?").bind(circle_id.to_string());
-
-        let circle_row = circle_query.fetch_one(&self.db).await.map_err(|e| {
-            eprintln!("Failed to fetch circle by id: {:?}", e);
-            anyhow::Error::msg("Failed to fetch circle by id")
+        let event_query = sqlx::query("SELECT * FROM circle_events WHERE circle_id = ?")
+            .bind(circle_id.to_string());
+        let event_rows = event_query.fetch_all(&self.db).await.map_err(|e| {
+            eprintln!("Failed to fetch circle events by circle_id: {:?}", e);
+            anyhow::Error::msg("Failed to fetch circle events by circle_id")
         })?;
 
-        let circle_data = CircleData {
-            id: circle_row.get::<String, _>("id"),
-            name: circle_row.get::<String, _>("name"),
-            capacity: circle_row.get::<i16, _>("capacity"),
-            version: circle_row.get::<u32, _>("version"),
-        };
-
-        Ok(Circle::try_from(circle_data)?)
+        let event_data = event_rows
+            .iter()
+            .map(|row| {
+                let circle_event_data = CircleEventData::from_row(row);
+                Event::from_circle_event_data(circle_event_data)
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(Circle::from_events(event_data.clone()))
     }
 
     async fn store(
         &self,
         version: Option<version::Version>,
-        _circle: &Circle,
+        event: &Event,
     ) -> Result<(), anyhow::Error> {
-        match version {
-            Some(_version) => {
-                unimplemented!("update_circle")
-            }
-            None => {
-                unimplemented!("create_circle")
-            }
-        }
+        todo!("store");
+        // sqlx::query(
+        //     r#"
+        //     INSERT INTO circle_events (
+        //         id,
+        //         circle_id,
+        //         version,
+        //         payload,
+        //         occurred_at
+        //     ) VALUES (?, ?, ?, ?, ?, ?)
+        //     "#,
+        // )
+        // .bind(event.id.to_string())
+        // .bind(event.circle_id.to_string())
+        // .bind(event.version.to_string())
+        // .bind(serde_json::to_value(&event.data)?) // イベント本体
+        // .bind(event.occurred_at.to_string())
+        // .execute(&self.db)
+        // .await?;
+        // Ok(())
     }
+}
 
-    async fn delete(&self, _circle: &Circle) -> Result<(), anyhow::Error> {
-        todo!()
+trait EventExt {
+    fn from_circle_event_data(event_data: CircleEventData) -> Result<Self, anyhow::Error>
+    where
+        Self: Sized;
+}
+
+impl EventExt for Event {
+    fn from_circle_event_data(event_data: CircleEventData) -> Result<Self, anyhow::Error> {
+        let event: event::EventData = serde_json::from_str(&event_data.payload)?;
+        Ok(Self {
+            id: EventId::from_str(&event_data.id)?,
+            circle_id: CircleId::from_str(&event_data.circle_id)?,
+            version: event_data.version.into(),
+            data: event,
+            occurred_at: chrono::DateTime::parse_from_rfc3339(&event_data.occurred_at)?
+                .with_timezone(&chrono::Utc),
+        })
     }
 }
 

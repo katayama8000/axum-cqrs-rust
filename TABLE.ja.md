@@ -17,9 +17,7 @@ CREATE TABLE circle_events (
     version INT NOT NULL,                   -- バージョン（楽観ロックに使用）
     event_type VARCHAR(100) NOT NULL,       -- イベント名（例: CircleCreated）
     payload JSON NOT NULL,                  -- イベント内容（差分 or 全体のスナップショット）
-    occurred_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    UNIQUE KEY unique_circle_version (circle_id, version)
+    occurred_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- イベント発生日時
 );
 ```
 
