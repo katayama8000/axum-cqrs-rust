@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 anyhow.workspace = true
 async-trait.workspace = true
+chrono = "0.4.39"
 serde.workspace = true
 serde_json.workspace = true
 sqlx.workspace = true

@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS circle_events (
     payload JSON NOT NULL,
     -- イベント内容（差分 or 全体）
     occurred_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_circle_version (circle_id, version)
+    -- イベント発生日時
 );
 
 -- プロジェクション: circle_projections テーブルの作成
