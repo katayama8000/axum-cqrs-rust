@@ -7,7 +7,11 @@ use domain::{
             event::{self, Event},
             Circle,
         },
-        value_object::{circle_id::CircleId, event_id::EventId, version},
+        value_object::{
+            circle_id::CircleId,
+            event_id::EventId,
+            version::{self, Version},
+        },
     },
     interface::command::circle_repository_interface::CircleRepositoryInterface,
 };
@@ -70,7 +74,12 @@ impl CircleRepositoryInterface for CircleRepository {
                 .bind(event_data.version)
                 .bind(event_data.payload)
                 .execute(&mut *transaction)
-                .await?;
+                .await.map_err(
+                    |e| {
+                        eprintln!("Failed to insert circle event: {:?}", e);
+                        anyhow::Error::msg("Failed to insert circle event")
+                    },
+                )?;
         }
 
         transaction.commit().await?;
@@ -91,7 +100,8 @@ impl EventExt for Event {
         Ok(Self {
             id: EventId::from_str(&event_data.id)?,
             circle_id: CircleId::from_str(&event_data.circle_id)?,
-            version: event_data.version.into(),
+            version: Version::try_from(event_data.version)
+                .map_err(|_| anyhow::Error::msg("Failed to convert version from string"))?,
             data: event,
             occurred_at: chrono::DateTime::parse_from_rfc3339(&event_data.occurred_at)?
                 .with_timezone(&chrono::Utc),
@@ -115,7 +125,10 @@ impl TryFrom<event::Event> for CircleEventData {
             id: value.id.to_string(),
             occurred_at: occurred_at_naive.to_string(),
             payload: serde_json::to_string(&value.data)?,
-            version: value.version.into(),
+            version: value
+                .version
+                .try_into()
+                .map_err(|_| anyhow::Error::msg("Failed to convert version to i32"))?,
         };
         Ok(event_data)
     }

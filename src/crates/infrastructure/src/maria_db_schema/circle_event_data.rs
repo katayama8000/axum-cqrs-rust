@@ -13,7 +13,7 @@ use sqlx::Row;
 pub(crate) struct CircleEventData {
     pub id: String,
     pub circle_id: String,
-    pub version: u32,
+    pub version: i32,
     pub event_type: String,
     pub payload: String,
     pub occurred_at: String,

@@ -177,6 +177,8 @@ pub async fn handle_update_circle(
     Path(path): Path<UpdateCircleInputParam>,
     Json(body): Json<UpdateCircleRequestBody>,
 ) -> Result<Json<UpdateCircleResponseBody>, StatusCode> {
+    tracing::info!("update circle: {:?}", body);
+    println!("update circle: {:?}", body);
     let input = body.into_to_input(path.id);
     match state.command_handler.update_circle(input).await {
         Ok(output) => Ok(Json(UpdateCircleResponseBody::from(output))),

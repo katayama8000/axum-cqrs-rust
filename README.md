@@ -40,8 +40,9 @@ curl -X PUT \
   -H "Content-Type: application/json" \
   -d '{
         "circle_name": "football club",
-        "capacity": 15
+        "capacity": 15,
+        "version": 2
       }' \
-  http://127.0.0.1:3000/circle/{circle_id}
+  http://127.0.0.1:3000/circle/asISiG99Wkvu5oo7GnDliJnXb35YkEpHCxeW
 ```
 

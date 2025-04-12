@@ -12,10 +12,9 @@ use axum::{
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .without_v07_checks()
         .route("/version", get(handle_get_version))
         .route("/circle", get(handle_fetch_circle))
-        .route("/circle/:id", get(handle_fetch_circle))
+        .route("/circle/{id}", get(handle_fetch_circle))
         .route("/circle", post(handle_create_circle))
-        .route("/circle/:id", put(handle_update_circle))
+        .route("/circle/{id}", put(handle_update_circle))
 }

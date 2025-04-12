@@ -58,6 +58,31 @@ impl TryFrom<i64> for Version {
     }
 }
 
+// i32
+impl TryFrom<i32> for Version {
+    type Error = Error;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        if value < 0 {
+            return Err(Error::OutOfRange);
+        }
+        u32::try_from(value as u32)
+            .map(Self)
+            .map_err(|_| Error::OutOfRange)
+    }
+}
+
+impl TryFrom<Version> for i32 {
+    type Error = Error;
+
+    fn try_from(version: Version) -> Result<Self, Self::Error> {
+        if version.0 > i32::MAX as u32 {
+            return Err(Error::OutOfRange);
+        }
+        Ok(version.0 as i32)
+    }
+}
+
 impl fmt::Display for Version {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
