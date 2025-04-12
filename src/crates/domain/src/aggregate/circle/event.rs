@@ -34,7 +34,7 @@ impl Event {
 
 // this is a schema for command database
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case", tag = "name")]
+#[serde(rename_all = "snake_case", tag = "type")]
 pub enum EventData {
     CircleCreated(CircleCreated),
     CircleUpdated(CircleUpdated),

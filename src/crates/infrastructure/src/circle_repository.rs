@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use chrono;
+use chrono::{self, NaiveDateTime};
 use domain::{
     aggregate::{
         circle::{
@@ -11,7 +11,6 @@ use domain::{
     },
     interface::command::circle_repository_interface::CircleRepositoryInterface,
 };
-use sqlx::Row;
 
 use crate::maria_db_schema::circle_event_data::CircleEventData;
 
@@ -39,60 +38,64 @@ impl CircleRepositoryInterface for CircleRepository {
 
         let event_data = event_rows
             .iter()
-            .map(|row| {
-                let circle_event_data = CircleEventData::from_row(row);
-                Event::from_circle_event_data(circle_event_data)
-            })
-            .collect::<Result<Vec<_>, _>>()?;
+            .map(|row| Event::from_circle_event_data(CircleEventData::from_row(row)))
+            .collect::<Result<Vec<Event>, _>>()?;
+
+        // Sort events by version
+        let mut event_data = event_data;
+        event_data.sort_by(|a, b| a.version.cmp(&b.version));
         Ok(Circle::from_events(event_data.clone()))
     }
 
     async fn store(
         &self,
-        version: Option<version::Version>,
+        _version: Option<version::Version>,
         events: Vec<event::Event>,
     ) -> Result<(), anyhow::Error> {
         if events.is_empty() {
+            tracing::info!("No events to store");
             return Ok(());
         }
 
+        let events_for_logging = events.clone();
+
+        //     let event_type = match event.data {
+        //         event::EventData::CircleCreated(_) => "circle_created",
+        //         event::EventData::CircleUpdated(_) => "circle_updated",
+        //     };
+
+        //     let event_data = CircleEventData::try_from(event.clone())?;
+
+        //     sqlx::query(
+        //     "INSERT INTO circle_events (circle_id, id, occurred_at, event_type, version, payload) VALUES (?, ?, ?, ?, ?, ?)",
+        // )
+        // .bind(event_data.circle_id)
+        // .bind(event_data.id)
+        // .bind(event_data.occurred_at)
+        // .bind(event_type)
+        // .bind(event_data.version)
+        // .bind(event_data.payload)
+        // .execute(&self.db)
+        // .await.map_err(
+        //     |e| {
+        //         eprintln!("Failed to store circle event: {:?}", e);
+        //         anyhow::Error::msg("Failed to store circle event")
+        //     },
+        // )?;
+        // }
+
+        // tracing::info!("Stored circle events: {:?}", events_for_logging);
+
         let mut transaction = self.db.begin().await?;
-
-        // Optimistic concurrency control using version
-        if let Some(expected_version) = version {
-            let circle_id = &events[0].circle_id;
-
-            // Check if the current version matches the expected version
-            let version_query = sqlx::query(
-                "SELECT MAX(version) as current_version FROM circle_events WHERE circle_id = ?",
-            )
-            .bind(circle_id.to_string());
-
-            let version_row = version_query.fetch_one(&mut *transaction).await?;
-            let current_version: Option<u32> = version_row.try_get("current_version")?;
-
-            // Convert database version to domain version
-            let current_version = match current_version {
-                Some(v) => version::Version::from(v),
-                None => version::Version::from(0), // Initial version if no events exist
-            };
-
-            // Version conflict check
-            if current_version != expected_version {
-                return Err(anyhow::Error::msg(format!(
-                    "Concurrency conflict: expected version {}, but current version is {}",
-                    expected_version, current_version
-                )));
-            }
-        }
 
         let events_for_logging = events.clone();
         for event in events {
             let event_data = CircleEventData::try_from(event.clone())?;
-            sqlx::query("INSERT INTO circle_events (circle_id, id, occurred_at, version, payload) VALUES (?, ?, ?, ?, ?)")
+            sqlx::query("INSERT INTO circle_events (circle_id, id, occurred_at, event_type, version, payload) VALUES (?, ?, ?, ?, ?, ?)")
                 .bind(event_data.circle_id)
                 .bind(event_data.id)
                 .bind(event_data.occurred_at)
+                .bind(event_data.event_type)
                 .bind(event_data.version)
                 .bind(event_data.payload)
                 .execute(&mut *transaction)
@@ -133,11 +136,13 @@ impl TryFrom<event::Event> for CircleEventData {
             event::EventData::CircleCreated(_) => "circle_created",
             event::EventData::CircleUpdated(_) => "circle_updated",
         };
+        let occurred_at_naive: NaiveDateTime = value.occurred_at.naive_utc();
+
         let event_data = CircleEventData {
             circle_id: value.circle_id.to_string(),
             event_type: event_type.to_string(),
             id: value.id.to_string(),
-            occurred_at: value.occurred_at.to_rfc3339(),
+            occurred_at: occurred_at_naive.to_string(),
             payload: serde_json::to_string(&value.data)?,
             version: value.version.into(),
         };
