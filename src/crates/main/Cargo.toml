@@ -1,0 +1,21 @@
+[package]
+name = "main"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+api = { path = "../api" }
+domain = { path = "../domain" }
+infrastructure = { path = "../infrastructure" }
+command = { path = "../command" }
+query = { path = "../query" }
+serde.workspace = true
+serde_json.workspace = true
+axum.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tokio.workspace = true
+tower.workspace = true
+anyhow.workspace = true
+sqlx.workspace = true
+dotenv.workspace = true

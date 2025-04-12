@@ -29,7 +29,7 @@ impl CircleEventData {
             version: row.get("version"),
             event_type: row.get("event_type"),
             payload: row.get("payload"),
-            occurred_at: row.get("occurred_at"), // ここを直接 DateTime<Utc> に
+            occurred_at: row.get("occurred_at"),
         })
     }
 }
