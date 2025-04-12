@@ -20,19 +20,20 @@ use sqlx::Row;
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
 pub(crate) struct CircleProtectionData {
-    pub id: String,
+    pub circle_id: String,
     pub name: String,
     pub capacity: i16,
-    pub version: u32,
+    pub version: i32,
 }
 
 impl std::convert::TryFrom<CircleProtectionData> for Circle {
     type Error = anyhow::Error;
 
     fn try_from(data: CircleProtectionData) -> Result<Self, Self::Error> {
-        let circle_id = CircleId::from_str(data.id.as_str())?;
+        let circle_id = CircleId::from_str(data.circle_id.as_str())?;
 
-        let version = Version::from(data.version);
+        let version = Version::try_from(data.version)
+            .map_err(|_| anyhow::anyhow!("Failed to convert version from i32 to Version"))?;
 
         Ok(Circle {
             id: circle_id,
@@ -43,21 +44,29 @@ impl std::convert::TryFrom<CircleProtectionData> for Circle {
     }
 }
 
-impl std::convert::From<Circle> for CircleProtectionData {
-    fn from(circle: Circle) -> Self {
-        Self {
-            id: circle.id.into(),
-            name: circle.name,
-            capacity: circle.capacity,
-            version: circle.version.into(),
-        }
+// try_from
+impl std::convert::TryFrom<Circle> for CircleProtectionData {
+    type Error = anyhow::Error;
+    fn try_from(circle: Circle) -> Result<Self, Self::Error> {
+        let circle_id = circle.id.to_string();
+        let name = circle.name;
+        let capacity = circle.capacity;
+        let version = i32::try_from(circle.version)
+            .map_err(|_| anyhow::anyhow!("Failed to convert version from Version to i32"))?;
+
+        Ok(Self {
+            circle_id,
+            name,
+            capacity,
+            version,
+        })
     }
 }
 
 impl CircleProtectionData {
     pub fn from_row(row: &sqlx::mysql::MySqlRow) -> Self {
         Self {
-            id: row.get("circle_id"),
+            circle_id: row.get("circle_id"),
             name: row.get("name"),
             capacity: row.get("capacity"),
             version: row.get("version"),

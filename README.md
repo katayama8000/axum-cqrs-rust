@@ -34,6 +34,11 @@ curl -X POST \
 curl -X GET http://127.0.0.1:3000/circle/{circle_id}
 ``` 
 
+### find all
+```bash 
+curl -X GET http://127.0.0.1:3000/circle
+```
+
 ### update
 ```bash
 curl -X PUT \

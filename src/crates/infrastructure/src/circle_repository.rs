@@ -99,10 +99,10 @@ impl CircleRepositoryInterface for CircleRepository {
             for event in &events_for_logging {
                 current_circle.apply_event(event);
             }
-            let data = CircleProtectionData::from(current_circle.clone());
+            let data = CircleProtectionData::try_from(current_circle.clone())?;
 
             sqlx::query("REPLACE INTO circle_projections (circle_id, name, capacity, version) VALUES (?, ?, ?, ?)",)
-                .bind(data.id.to_string())
+                .bind(data.circle_id.to_string())
                 .bind(data.name.to_string())
                 .bind(data.capacity)
                 .bind(data.version)
