@@ -35,9 +35,6 @@ pub async fn handle(
     // create
     let (circle, event) = Circle::create(circle_name, capacity).map_err(|_| Error::InvalidInput)?;
 
-    println!("circle: {:?}", circle);
-    println!("event: {:?}", event);
-
     // store
     circle_repository
         .store(None, vec![event])

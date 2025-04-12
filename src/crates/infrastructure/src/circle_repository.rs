@@ -57,35 +57,6 @@ impl CircleRepositoryInterface for CircleRepository {
             return Ok(());
         }
 
-        let events_for_logging = events.clone();
-
-        //     let event_type = match event.data {
-        //         event::EventData::CircleCreated(_) => "circle_created",
-        //         event::EventData::CircleUpdated(_) => "circle_updated",
-        //     };
-
-        //     let event_data = CircleEventData::try_from(event.clone())?;
-
-        //     sqlx::query(
-        //     "INSERT INTO circle_events (circle_id, id, occurred_at, event_type, version, payload) VALUES (?, ?, ?, ?, ?, ?)",
-        // )
-        // .bind(event_data.circle_id)
-        // .bind(event_data.id)
-        // .bind(event_data.occurred_at)
-        // .bind(event_type)
-        // .bind(event_data.version)
-        // .bind(event_data.payload)
-        // .execute(&self.db)
-        // .await.map_err(
-        //     |e| {
-        //         eprintln!("Failed to store circle event: {:?}", e);
-        //         anyhow::Error::msg("Failed to store circle event")
-        //     },
-        // )?;
-        // }
-
-        // tracing::info!("Stored circle events: {:?}", events_for_logging);
-
         let mut transaction = self.db.begin().await?;
 
         let events_for_logging = events.clone();
