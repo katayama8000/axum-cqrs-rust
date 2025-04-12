@@ -39,10 +39,10 @@ curl -X GET http://127.0.0.1:3000/circle/{circle_id}
 curl -X PUT \
   -H "Content-Type: application/json" \
   -d '{
-        "circle_name": "football club",
+        "circle_name": "baseball club",
         "capacity": 15,
-        "version": 2
+        "version": 3
       }' \
-  http://127.0.0.1:3000/circle/asISiG99Wkvu5oo7GnDliJnXb35YkEpHCxeW
+  http://127.0.0.1:3000/circle/PIoV7MrhJUncJAJ0tqJeJGITPAoiyv4ApDmS
 ```
 

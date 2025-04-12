@@ -15,7 +15,9 @@ use domain::{
     interface::command::circle_repository_interface::CircleRepositoryInterface,
 };
 
-use crate::maria_db_schema::circle_event_data::CircleEventData;
+use crate::maria_db_schema::{
+    circle_event_data::CircleEventData, circle_protection_data::CircleProtectionData,
+};
 
 #[derive(Clone, Debug)]
 pub struct CircleRepository {
@@ -63,28 +65,59 @@ impl CircleRepositoryInterface for CircleRepository {
             return Ok(());
         }
 
-        let mut transaction = self.db.begin().await?;
-
         let events_for_logging = events.clone();
-        for event in events {
-            let event_data = CircleEventData::try_from(event.clone())?;
-            sqlx::query("INSERT INTO circle_events (circle_id, id, occurred_at, event_type, version, payload) VALUES (?, ?, ?, ?, ?, ?)")
-                .bind(event_data.circle_id)
+
+        // First transaction for storing events
+        {
+            let mut transaction = self.db.begin().await?;
+
+            // Store events
+            for event in events {
+                let event_data = CircleEventData::try_from(event.clone())?;
+
+                sqlx::query("INSERT INTO circle_events (circle_id, id, occurred_at, event_type, version, payload) VALUES (?, ?, ?, ?, ?, ?)")
+                .bind(event_data.circle_id.clone())
                 .bind(event_data.id)
-                .bind(event_data.occurred_at.to_string())
-                .bind(event_data.event_type)
+                .bind(event_data.occurred_at)
+                .bind(event_data.event_type.clone())
                 .bind(event_data.version)
-                .bind(event_data.payload)
+                .bind(event_data.payload.clone())
                 .execute(&mut *transaction)
-                .await.map_err(
-                    |e| {
-                        eprintln!("Failed to insert circle event: {:?}", e);
-                        anyhow::Error::msg("Failed to insert circle event")
-                    },
-                )?;
+                .await.map_err(|e| {
+                    eprintln!("Failed to insert circle event: {:?}", e);
+                    anyhow::Error::msg("Failed to insert circle event")
+                })?;
+            }
+
+            transaction.commit().await?;
         }
 
-        transaction.commit().await?;
+        // Second transaction for updating projections
+        {
+            let mut transaction = self.db.begin().await?;
+
+            // Update projection in a separate transaction
+            let mut current_circle = self.find_by_id(&events_for_logging[0].circle_id).await?;
+            // 新しいイベントを適用
+            for event in &events_for_logging {
+                current_circle.apply_event(event);
+            }
+            let data = CircleProtectionData::from(current_circle.clone());
+
+            sqlx::query("REPLACE INTO circle_projections (circle_id, name, capacity, version) VALUES (?, ?, ?, ?)",)
+                .bind(data.id.to_string())
+                .bind(data.name.to_string())
+                .bind(data.capacity)
+                .bind(data.version)
+                .execute(&mut *transaction)
+                .await.map_err(|e| {
+                    eprintln!("Failed to update circle projection: {:?}", e);
+                    anyhow::Error::msg("Failed to update circle projection")
+                })?;
+
+            transaction.commit().await?;
+        }
+
         tracing::info!("Stored circle events: {:?}", events_for_logging);
         Ok(())
     }
