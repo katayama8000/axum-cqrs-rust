@@ -25,16 +25,14 @@ impl Circle {
 
     pub fn create(name: String, capacity: i16) -> Result<(Self, Event)> {
         Self::validate_capacity(capacity)?;
-        let circle_id = CircleId::gen();
-        let event_id = event_id::EventId::gen();
 
         let event = Event::new(
-            circle_id.clone(),
+            CircleId::gen(),
             event::EventData::CircleCreated(event::CircleCreated {
                 name: name.clone(),
                 capacity,
             }),
-            event_id,
+            event_id::EventId::gen(),
             chrono::Utc::now().date_naive().into(),
             Version::new(),
         );
@@ -47,14 +45,13 @@ impl Circle {
             Self::validate_capacity(new_capacity)?;
         }
 
-        let event_id = event_id::EventId::gen();
         let event = Event::new(
             self.id.clone(),
             event::EventData::CircleUpdated(event::CircleUpdated {
                 name: name.clone(),
                 capacity: capacity.clone(),
             }),
-            event_id,
+            event_id::EventId::gen(),
             chrono::Utc::now().date_naive().into(),
             self.version.next(),
         );
