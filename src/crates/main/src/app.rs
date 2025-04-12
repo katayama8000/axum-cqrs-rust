@@ -1,16 +1,15 @@
 use std::sync::Arc;
 
-use crate::config::connect::connect;
 use api::{app_state::AppState, router::router};
-use injectors::{
-    build_command_handler::build_command_handler, build_query_handler::build_query_handler,
+
+use crate::{
+    config::connect::connect,
+    injectors::{
+        build_command_handler::build_command_handler, build_query_handler::build_query_handler,
+    },
 };
 
-mod config;
-mod injectors;
-
-#[tokio::main]
-async fn main() -> Result<(), ()> {
+pub async fn run() -> Result<(), ()> {
     tracing_subscriber::fmt().init();
 
     let pool = connect().await.expect("database should connect");
