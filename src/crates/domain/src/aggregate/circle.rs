@@ -35,7 +35,7 @@ impl Circle {
                 capacity,
             }),
             event_id,
-            chrono::Utc::now(),
+            chrono::Utc::now().date_naive().into(),
             Version::new(),
         );
         let state = Self::from_created_event(event.clone());
@@ -55,7 +55,7 @@ impl Circle {
                 capacity: capacity.clone(),
             }),
             event_id,
-            chrono::Utc::now(),
+            chrono::Utc::now().date_naive().into(),
             self.version.next(),
         );
         let mut state = self.clone();
