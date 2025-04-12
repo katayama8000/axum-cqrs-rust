@@ -32,7 +32,6 @@ CREATE TABLE circle_projections (
     name VARCHAR(100) NOT NULL,             -- サークル名
     capacity SMALLINT NOT NULL,             -- 定員
     version INT NOT NULL,                   -- 最新バージョン
-    last_event_at DATETIME NOT NULL         -- 最終イベント発生日時
 );
 ```
 

@@ -43,6 +43,6 @@ curl -X PUT \
         "capacity": 15,
         "version": 2
       }' \
-  http://127.0.0.1:3000/circle/asISiG99Wkvu5oo7GnDliJnXb35YkEpHCxeW
+  http://127.0.0.1:3000/circle/{circle_id}
 ```
 

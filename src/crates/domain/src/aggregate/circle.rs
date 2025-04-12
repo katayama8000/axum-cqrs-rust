@@ -74,7 +74,7 @@ impl Circle {
         }
     }
 
-    fn apply_event(&mut self, event: &Event) {
+    pub fn apply_event(&mut self, event: &Event) {
         match &event.data {
             event::EventData::CircleCreated(event::CircleCreated { name, capacity }) => {
                 self.name = name.clone();

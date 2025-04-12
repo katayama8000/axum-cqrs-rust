@@ -42,9 +42,8 @@ INSERT INTO
         name,
         capacity,
         version,
-        last_event_at
     )
 VALUES
-    (UUID(), 'Circle A', 5, 1, NOW()),
-    (UUID(), 'Circle B', 8, 1, NOW()),
-    (UUID(), 'Circle C', 10, 1, NOW());
+    (UUID(), 'Circle A', 5, 1),
+    (UUID(), 'Circle B', 8, 1),
+    (UUID(), 'Circle C', 10, 1);

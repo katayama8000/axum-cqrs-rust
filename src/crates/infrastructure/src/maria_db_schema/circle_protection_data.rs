@@ -18,17 +18,17 @@ use domain::aggregate::{
 // );
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
-pub(crate) struct CircleData {
+pub(crate) struct CircleProtectionData {
     pub id: String,
     pub name: String,
     pub capacity: i16,
     pub version: u32,
 }
 
-impl std::convert::TryFrom<CircleData> for Circle {
+impl std::convert::TryFrom<CircleProtectionData> for Circle {
     type Error = anyhow::Error;
 
-    fn try_from(data: CircleData) -> Result<Self, Self::Error> {
+    fn try_from(data: CircleProtectionData) -> Result<Self, Self::Error> {
         let circle_id = CircleId::from_str(data.id.as_str())?;
 
         let version = Version::from(data.version);
@@ -42,7 +42,7 @@ impl std::convert::TryFrom<CircleData> for Circle {
     }
 }
 
-impl std::convert::From<Circle> for CircleData {
+impl std::convert::From<Circle> for CircleProtectionData {
     fn from(circle: Circle) -> Self {
         Self {
             id: circle.id.into(),
