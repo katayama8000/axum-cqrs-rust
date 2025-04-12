@@ -1,6 +1,5 @@
 use std::str::FromStr;
 
-use chrono::{self, NaiveDateTime};
 use domain::{
     aggregate::{
         circle::{
@@ -42,7 +41,10 @@ impl CircleRepositoryInterface for CircleRepository {
 
         let event_data = event_rows
             .iter()
-            .map(|row| Event::from_circle_event_data(CircleEventData::from_row(row)))
+            .map(|row| {
+                CircleEventData::try_from_row(row)
+                    .and_then(|data| Event::from_circle_event_data(data))
+            })
             .collect::<Result<Vec<Event>, _>>()?;
 
         // Sort events by version
@@ -69,7 +71,7 @@ impl CircleRepositoryInterface for CircleRepository {
             sqlx::query("INSERT INTO circle_events (circle_id, id, occurred_at, event_type, version, payload) VALUES (?, ?, ?, ?, ?, ?)")
                 .bind(event_data.circle_id)
                 .bind(event_data.id)
-                .bind(event_data.occurred_at)
+                .bind(event_data.occurred_at.to_string())
                 .bind(event_data.event_type)
                 .bind(event_data.version)
                 .bind(event_data.payload)
@@ -95,16 +97,15 @@ trait EventExt {
 }
 
 impl EventExt for Event {
-    fn from_circle_event_data(event_data: CircleEventData) -> Result<Self, anyhow::Error> {
-        let event: event::EventData = serde_json::from_str(&event_data.payload)?;
+    fn from_circle_event_data(v: CircleEventData) -> Result<Self, anyhow::Error> {
+        let event: event::EventData = serde_json::from_str(&v.payload.to_string())?;
         Ok(Self {
-            id: EventId::from_str(&event_data.id)?,
-            circle_id: CircleId::from_str(&event_data.circle_id)?,
-            version: Version::try_from(event_data.version)
+            id: EventId::from_str(&v.id)?,
+            circle_id: CircleId::from_str(&v.circle_id)?,
+            version: Version::try_from(v.version)
                 .map_err(|_| anyhow::Error::msg("Failed to convert version from string"))?,
             data: event,
-            occurred_at: chrono::DateTime::parse_from_rfc3339(&event_data.occurred_at)?
-                .with_timezone(&chrono::Utc),
+            occurred_at: v.occurred_at,
         })
     }
 }
@@ -117,14 +118,13 @@ impl TryFrom<event::Event> for CircleEventData {
             event::EventData::CircleCreated(_) => "circle_created",
             event::EventData::CircleUpdated(_) => "circle_updated",
         };
-        let occurred_at_naive: NaiveDateTime = value.occurred_at.naive_utc();
 
         let event_data = CircleEventData {
             circle_id: value.circle_id.to_string(),
             event_type: event_type.to_string(),
             id: value.id.to_string(),
-            occurred_at: occurred_at_naive.to_string(),
-            payload: serde_json::to_string(&value.data)?,
+            occurred_at: value.occurred_at,
+            payload: sqlx::types::Json(serde_json::to_value(value.data)?),
             version: value
                 .version
                 .try_into()

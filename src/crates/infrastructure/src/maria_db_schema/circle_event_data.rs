@@ -7,7 +7,8 @@
 //     occurred_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 // );
 
-use sqlx::Row;
+use chrono::NaiveDateTime;
+use sqlx::{types::Json, Row};
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
 pub(crate) struct CircleEventData {
@@ -15,20 +16,20 @@ pub(crate) struct CircleEventData {
     pub circle_id: String,
     pub version: i32,
     pub event_type: String,
-    pub payload: String,
-    pub occurred_at: String,
+    pub payload: Json<serde_json::Value>,
+    pub occurred_at: NaiveDateTime,
 }
 
-// from row data
+// try_from row data
 impl CircleEventData {
-    pub fn from_row(row: &sqlx::mysql::MySqlRow) -> Self {
-        Self {
+    pub fn try_from_row(row: &sqlx::mysql::MySqlRow) -> Result<Self, anyhow::Error> {
+        Ok(Self {
             id: row.get("id"),
             circle_id: row.get("circle_id"),
             version: row.get("version"),
             event_type: row.get("event_type"),
             payload: row.get("payload"),
-            occurred_at: row.get("occurred_at"),
-        }
+            occurred_at: row.get("occurred_at"), // ここを直接 DateTime<Utc> に
+        })
     }
 }

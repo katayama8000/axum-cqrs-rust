@@ -1,3 +1,4 @@
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
 use crate::aggregate::value_object::{circle_id::CircleId, event_id::EventId, version::Version};
@@ -7,7 +8,7 @@ pub struct Event {
     pub circle_id: CircleId,
     pub data: EventData,
     pub id: EventId,
-    pub occurred_at: chrono::DateTime<chrono::Utc>,
+    pub occurred_at: NaiveDateTime,
     pub version: Version,
 }
 
@@ -16,7 +17,7 @@ impl Event {
         circle_id: CircleId,
         data: D,
         id: EventId,
-        occurred_at: chrono::DateTime<chrono::Utc>,
+        occurred_at: NaiveDateTime,
         version: Version,
     ) -> Self
     where
