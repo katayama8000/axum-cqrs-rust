@@ -58,7 +58,6 @@ impl TryFrom<i64> for Version {
     }
 }
 
-// i32
 impl TryFrom<i32> for Version {
     type Error = Error;
 

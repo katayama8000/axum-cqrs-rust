@@ -20,16 +20,15 @@ pub(crate) struct CircleEventData {
     pub occurred_at: NaiveDateTime,
 }
 
-// try_from row data
 impl CircleEventData {
-    pub fn try_from_row(row: &sqlx::mysql::MySqlRow) -> Result<Self, anyhow::Error> {
-        Ok(Self {
+    pub fn from_row(row: &sqlx::mysql::MySqlRow) -> Self {
+        Self {
             id: row.get("id"),
             circle_id: row.get("circle_id"),
             version: row.get("version"),
             event_type: row.get("event_type"),
             payload: row.get("payload"),
             occurred_at: row.get("occurred_at"),
-        })
+        }
     }
 }
