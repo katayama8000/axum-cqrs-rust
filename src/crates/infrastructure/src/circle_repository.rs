@@ -43,10 +43,7 @@ impl CircleRepositoryInterface for CircleRepository {
 
         let event_data = event_rows
             .iter()
-            .map(|row| {
-                CircleEventData::try_from_row(row)
-                    .and_then(|data| Event::from_circle_event_data(data))
-            })
+            .map(|row| Event::from_circle_event_data(CircleEventData::from_row(row)))
             .collect::<Result<Vec<Event>, _>>()?;
 
         // Sort events by version

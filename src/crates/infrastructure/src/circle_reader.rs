@@ -4,7 +4,9 @@ use domain::{
 };
 use sqlx::Row;
 
-use crate::maria_db_schema::circle_data::CircleData;
+use crate::maria_db_schema::{
+    circle_data::CircleData, circle_protection_data::CircleProtectionData,
+};
 
 use anyhow::Error;
 
@@ -27,18 +29,11 @@ impl CircleReaderInterface for CircleReader {
             sqlx::query("SELECT * FROM circles WHERE id = ?").bind(circle_id.to_string());
 
         let circle_row = circle_query.fetch_one(&self.db).await.map_err(|e| {
-            eprintln!("Failed to fetch circle by id: {:?}", e);
-            anyhow::Error::msg("Failed to fetch circle by id")
+            eprintln!("Failed to fetch circle_projections by id: {:?}", e);
+            anyhow::Error::msg("Failed to fetch circle_projections by id")
         })?;
-
-        let circle_data = CircleData {
-            id: circle_row.get::<String, _>("id"),
-            name: circle_row.get::<String, _>("name"),
-            capacity: circle_row.get::<i16, _>("capacity"),
-            version: circle_row.get::<u32, _>("version"),
-        };
-
-        Ok(Some(Circle::try_from(circle_data)?))
+        let v = CircleProtectionData::from_row(&circle_row);
+        Ok(Some(Circle::try_from(v)?))
     }
 
     async fn list_circles(&self) -> Result<Vec<Circle>, Error> {

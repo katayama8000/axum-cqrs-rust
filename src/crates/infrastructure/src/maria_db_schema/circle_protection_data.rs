@@ -4,6 +4,7 @@ use domain::aggregate::{
     circle::Circle,
     value_object::{circle_id::CircleId, version::Version},
 };
+use sqlx::Row;
 
 // -- プロジェクション: circle_projections テーブルの作成
 // CREATE TABLE IF NOT EXISTS circle_projections (
@@ -49,6 +50,17 @@ impl std::convert::From<Circle> for CircleProtectionData {
             name: circle.name,
             capacity: circle.capacity,
             version: circle.version.into(),
+        }
+    }
+}
+
+impl CircleProtectionData {
+    pub fn from_row(row: &sqlx::mysql::MySqlRow) -> Self {
+        Self {
+            id: row.get("circle_id"),
+            name: row.get("name"),
+            capacity: row.get("capacity"),
+            version: row.get("version"),
         }
     }
 }
