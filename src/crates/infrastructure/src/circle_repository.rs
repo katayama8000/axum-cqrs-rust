@@ -15,9 +15,7 @@ use domain::{
     interface::command::circle_repository_interface::CircleRepositoryInterface,
 };
 
-use crate::maria_db_schema::{
-    circle_event_data::CircleEventData, circle_protection_data::CircleProtectionData,
-};
+use crate::maria_db_schema::{CircleEventData, CircleProtectionData};
 
 #[derive(Clone, Debug)]
 pub struct CircleRepository {
