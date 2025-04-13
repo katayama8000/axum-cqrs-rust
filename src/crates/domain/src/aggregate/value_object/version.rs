@@ -88,13 +88,6 @@ impl fmt::Display for Version {
     }
 }
 
-#[cfg(any(test, feature = "test-utils"))]
-impl rand::distributions::Distribution<Version> for rand::distributions::Standard {
-    fn sample<R: rand::prelude::Rng + ?Sized>(&self, rng: &mut R) -> Version {
-        Version(rng.gen())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
