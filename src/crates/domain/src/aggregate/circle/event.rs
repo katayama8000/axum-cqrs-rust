@@ -1,4 +1,4 @@
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::aggregate::value_object::{circle_id::CircleId, event_id::EventId, version::Version};
@@ -13,27 +13,45 @@ pub struct Event {
 }
 
 impl Event {
-    pub fn new<D>(
-        circle_id: CircleId,
-        data: D,
-        id: EventId,
-        occurred_at: NaiveDateTime,
-        version: Version,
-    ) -> Self
-    where
-        D: Into<EventData>,
-    {
-        Self {
-            data: data.into(),
+    pub fn build(circle_id: CircleId, version: Version) -> EventBuilder {
+        EventBuilder {
             circle_id,
-            id,
+            id: EventId::gen(),
+            occurred_at: Utc::now().naive_utc(),
             version,
-            occurred_at,
         }
     }
 }
 
-// this is a schema for command database
+pub struct EventBuilder {
+    circle_id: CircleId,
+    id: EventId,
+    occurred_at: NaiveDateTime,
+    version: Version,
+}
+
+impl EventBuilder {
+    pub fn circle_created(self, name: String, capacity: i16) -> Event {
+        Event {
+            circle_id: self.circle_id,
+            data: CircleCreated { name, capacity }.into(),
+            id: self.id,
+            occurred_at: self.occurred_at,
+            version: self.version,
+        }
+    }
+
+    pub fn circle_updated(self, name: Option<String>, capacity: Option<i16>) -> Event {
+        Event {
+            circle_id: self.circle_id,
+            data: CircleUpdated { name, capacity }.into(),
+            id: self.id,
+            occurred_at: self.occurred_at,
+            version: self.version,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum EventData {

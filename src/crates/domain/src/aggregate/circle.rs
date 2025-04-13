@@ -1,4 +1,4 @@
-use super::value_object::{circle_id::CircleId, event_id, version::Version};
+use super::value_object::{circle_id::CircleId, version::Version};
 use anyhow::{Error, Result};
 use event::Event;
 pub mod event;
@@ -25,17 +25,8 @@ impl Circle {
 
     pub fn create(name: String, capacity: i16) -> Result<(Self, Event)> {
         Self::validate_capacity(capacity)?;
-
-        let event = Event::new(
-            CircleId::gen(),
-            event::EventData::CircleCreated(event::CircleCreated {
-                name: name.clone(),
-                capacity,
-            }),
-            event_id::EventId::gen(),
-            chrono::Utc::now().date_naive().into(),
-            Version::new(),
-        );
+        let event =
+            Event::build(CircleId::gen(), Version::new()).circle_created(name.clone(), capacity);
         let state = Self::from_created_event(event.clone());
         Ok((state, event))
     }
@@ -44,17 +35,8 @@ impl Circle {
         if let Some(new_capacity) = capacity {
             Self::validate_capacity(new_capacity)?;
         }
-
-        let event = Event::new(
-            self.id.clone(),
-            event::EventData::CircleUpdated(event::CircleUpdated {
-                name: name.clone(),
-                capacity: capacity.clone(),
-            }),
-            event_id::EventId::gen(),
-            chrono::Utc::now().date_naive().into(),
-            self.version.next(),
-        );
+        let event =
+            Event::build(self.id.clone(), self.version.clone()).circle_updated(name, capacity);
         let mut state = self.clone();
         state.apply_event(&event);
         Ok((state, event))
