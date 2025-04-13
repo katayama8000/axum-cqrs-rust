@@ -8,10 +8,10 @@ edition = "2021"
 [dependencies]
 anyhow.workspace = true
 async-trait.workspace = true
-chrono = "0.4.39"
+chrono.workspace = true
 mockall.workspace = true
-rand = "0.8.4"
-serde = { version = "1.0.130", features = ["derive"] }
+rand.workspace = true
+serde.workspace = true
 
 
 [features]
