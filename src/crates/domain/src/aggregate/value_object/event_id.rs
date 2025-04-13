@@ -1,13 +1,15 @@
 use std::fmt;
 
-use rand::distributions::{Alphanumeric, DistString};
+use rand::distr::{Alphanumeric, SampleString};
+
+// use rand::distributions::{Alphanumeric, DistString};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EventId(String);
 
 impl EventId {
     pub fn gen() -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         Self(Alphanumeric.sample_string(&mut rng, 36))
     }
 }
