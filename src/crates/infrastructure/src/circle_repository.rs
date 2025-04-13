@@ -47,7 +47,7 @@ impl CircleRepositoryInterface for CircleRepository {
         // Sort events by version
         let mut event_data = event_data;
         event_data.sort_by(|a, b| a.version.cmp(&b.version));
-        Ok(Circle::from_events(event_data.clone()))
+        Ok(Circle::replay(event_data.clone()))
     }
 
     async fn store(
