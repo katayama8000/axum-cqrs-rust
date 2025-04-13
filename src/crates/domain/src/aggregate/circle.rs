@@ -12,7 +12,7 @@ pub struct Circle {
 }
 
 impl Circle {
-    pub fn from_events(events: Vec<Event>) -> Self {
+    pub fn replay(events: Vec<Event>) -> Self {
         let mut state = match events.first() {
             Some(first_event) => Self::from_created_event(first_event.clone()),
             None => unreachable!("No events to initialize Circle"),
