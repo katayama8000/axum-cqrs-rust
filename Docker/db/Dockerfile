@@ -1,2 +1,2 @@
-FROM mariadb:10.11.11-slim
+FROM mariadb:10.4
 RUN apt-get update -y
