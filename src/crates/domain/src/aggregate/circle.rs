@@ -1,6 +1,6 @@
 use super::value_object::{circle_id::CircleId, version::Version};
 use anyhow::{Error, Result};
-use event::Event;
+use event::CircleEvent;
 pub mod event;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -12,7 +12,7 @@ pub struct Circle {
 }
 
 impl Circle {
-    pub fn replay(events: Vec<Event>) -> Self {
+    pub fn replay(events: Vec<CircleEvent>) -> Self {
         let mut state = match events.first() {
             Some(first_event) => Self::from_created_event(first_event.clone()),
             None => unreachable!("No events to initialize Circle"),
@@ -23,20 +23,24 @@ impl Circle {
         state
     }
 
-    pub fn create(name: String, capacity: i16) -> Result<(Self, Event)> {
+    pub fn create(name: String, capacity: i16) -> Result<(Self, CircleEvent)> {
         Self::validate_capacity(capacity)?;
-        let event =
-            Event::build(CircleId::gen(), Version::new()).circle_created(name.clone(), capacity);
+        let event = CircleEvent::build(CircleId::gen(), Version::new())
+            .circle_created(name.clone(), capacity);
         let state = Self::from_created_event(event.clone());
         Ok((state, event))
     }
 
-    pub fn update(self, name: Option<String>, capacity: Option<i16>) -> Result<(Self, Event)> {
+    pub fn update(
+        self,
+        name: Option<String>,
+        capacity: Option<i16>,
+    ) -> Result<(Self, CircleEvent)> {
         if let Some(new_capacity) = capacity {
             Self::validate_capacity(new_capacity)?;
         }
-        let event =
-            Event::build(self.id.clone(), self.version.clone()).circle_updated(name, capacity);
+        let event = CircleEvent::build(self.id.clone(), self.version.clone())
+            .circle_updated(name, capacity);
         let mut state = self.clone();
         state.apply_event(&event);
         Ok((state, event))
@@ -44,7 +48,7 @@ impl Circle {
 
     // Private helper methods for event sourcing
 
-    fn from_created_event(event: Event) -> Self {
+    fn from_created_event(event: CircleEvent) -> Self {
         match event.data {
             event::EventData::CircleCreated(event::CircleCreated { name, capacity }) => Self {
                 id: event.circle_id,
@@ -56,7 +60,7 @@ impl Circle {
         }
     }
 
-    pub fn apply_event(&mut self, event: &Event) {
+    pub fn apply_event(&mut self, event: &CircleEvent) {
         match &event.data {
             event::EventData::CircleCreated(event::CircleCreated { name, capacity }) => {
                 self.name = name.clone();

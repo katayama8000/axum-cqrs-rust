@@ -3,7 +3,7 @@ use std::str::FromStr;
 use domain::{
     aggregate::{
         circle::{
-            event::{self, Event},
+            event::{self, CircleEvent},
             Circle,
         },
         value_object::{
@@ -41,8 +41,8 @@ impl CircleRepositoryInterface for CircleRepository {
 
         let event_data = event_rows
             .iter()
-            .map(|row| Event::from_circle_event_data(CircleEventData::from_row(row)))
-            .collect::<Result<Vec<Event>, _>>()?;
+            .map(|row| CircleEvent::from_circle_event_data(CircleEventData::from_row(row)))
+            .collect::<Result<Vec<CircleEvent>, _>>()?;
 
         // Sort events by version
         let mut event_data = event_data;
@@ -53,7 +53,7 @@ impl CircleRepositoryInterface for CircleRepository {
     async fn store(
         &self,
         _version: Option<version::Version>,
-        events: Vec<event::Event>,
+        events: Vec<event::CircleEvent>,
     ) -> Result<(), anyhow::Error> {
         if events.is_empty() {
             tracing::info!("No events to store");
@@ -124,7 +124,7 @@ trait EventExt {
         Self: Sized;
 }
 
-impl EventExt for Event {
+impl EventExt for CircleEvent {
     fn from_circle_event_data(v: CircleEventData) -> Result<Self, anyhow::Error> {
         let event: event::EventData = serde_json::from_str(&v.payload.to_string())?;
         Ok(Self {
@@ -139,9 +139,9 @@ impl EventExt for Event {
 }
 
 // event -> circle_event_data
-impl TryFrom<event::Event> for CircleEventData {
+impl TryFrom<event::CircleEvent> for CircleEventData {
     type Error = anyhow::Error;
-    fn try_from(value: event::Event) -> Result<Self, Self::Error> {
+    fn try_from(value: event::CircleEvent) -> Result<Self, Self::Error> {
         let event_type = match value.data.clone() {
             event::EventData::CircleCreated(_) => "circle_created",
             event::EventData::CircleUpdated(_) => "circle_updated",

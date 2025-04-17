@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::aggregate::value_object::{circle_id::CircleId, event_id::EventId, version::Version};
 
 #[derive(Clone, Debug)]
-pub struct Event {
+pub struct CircleEvent {
     pub circle_id: CircleId,
     pub data: EventData,
     pub id: EventId,
@@ -12,9 +12,9 @@ pub struct Event {
     pub version: Version,
 }
 
-impl Event {
-    pub fn build(circle_id: CircleId, version: Version) -> EventBuilder {
-        EventBuilder {
+impl CircleEvent {
+    pub fn build(circle_id: CircleId, version: Version) -> CircleEventBuilder {
+        CircleEventBuilder {
             circle_id,
             id: EventId::gen(),
             occurred_at: Utc::now().naive_utc(),
@@ -23,16 +23,16 @@ impl Event {
     }
 }
 
-pub struct EventBuilder {
+pub struct CircleEventBuilder {
     circle_id: CircleId,
     id: EventId,
     occurred_at: NaiveDateTime,
     version: Version,
 }
 
-impl EventBuilder {
-    pub fn circle_created(self, name: String, capacity: i16) -> Event {
-        Event {
+impl CircleEventBuilder {
+    pub fn circle_created(self, name: String, capacity: i16) -> CircleEvent {
+        CircleEvent {
             circle_id: self.circle_id,
             data: CircleCreated { name, capacity }.into(),
             id: self.id,
@@ -41,8 +41,8 @@ impl EventBuilder {
         }
     }
 
-    pub fn circle_updated(self, name: Option<String>, capacity: Option<i16>) -> Event {
-        Event {
+    pub fn circle_updated(self, name: Option<String>, capacity: Option<i16>) -> CircleEvent {
+        CircleEvent {
             circle_id: self.circle_id,
             data: CircleUpdated { name, capacity }.into(),
             id: self.id,
