@@ -47,7 +47,7 @@ impl CircleEventBuilder {
             data: CircleUpdated { name, capacity }.into(),
             id: self.id,
             occurred_at: self.occurred_at,
-            version: self.version,
+            version: self.version.next(),
         }
     }
 }
