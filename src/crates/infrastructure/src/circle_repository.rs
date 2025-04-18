@@ -66,7 +66,6 @@ impl CircleRepositoryInterface for CircleRepository {
         {
             let mut transaction = self.db.begin().await?;
 
-            // Store events
             for event in events {
                 let event_data = CircleEventData::try_from(event.clone())?;
 
@@ -91,9 +90,10 @@ impl CircleRepositoryInterface for CircleRepository {
         {
             let mut transaction = self.db.begin().await?;
 
-            // Update projection in a separate transaction
-            let mut current_circle = self.find_by_id(&events_for_logging[0].circle_id).await?;
-            // 新しいイベントを適用
+            let first_event = events_for_logging
+                .first()
+                .ok_or_else(|| anyhow::Error::msg("No events found"))?;
+            let mut current_circle = self.find_by_id(&first_event.circle_id).await?;
             for event in &events_for_logging {
                 current_circle.apply_event(event);
             }
