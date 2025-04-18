@@ -225,19 +225,13 @@ impl CircleRepositoryInterface for CircleRepository {
                 anyhow::Error::msg(format!("Failed to convert version to i32: {:?}", e))
             })?;
             if version_i32 % SNAPSHOT_INTERVAL == 0 {
-                let circle_clone = current_circle.clone();
-                let repo = std::sync::Arc::new(self.clone());
-                let circle_clone = circle_clone.clone();
-                tokio::spawn({
-                    let repo = repo.clone();
-                    async move {
-                        if let Err(e) = repo.save_snapshot(&circle_clone).await {
-                            tracing::error!("Failed to save snapshot: {:?}", e);
-                        } else {
-                            tracing::info!("Snapshot saved for circle at version {}", version_i32);
-                        }
-                    }
-                });
+                // Save snapshot synchronously within the same transaction
+                if let Err(e) = self.save_snapshot(&current_circle).await {
+                    tracing::error!("Failed to save snapshot: {:?}", e);
+                    return Err(anyhow::Error::msg("Failed to save snapshot"));
+                } else {
+                    tracing::info!("Snapshot saved for circle at version {}", version_i32);
+                }
             }
 
             transaction.commit().await?;
