@@ -15,7 +15,11 @@ use domain::{
     interface::command::circle_repository_interface::CircleRepositoryInterface,
 };
 
-use crate::maria_db_schema::{CircleEventData, CircleProtectionData};
+use crate::maria_db_schema::{
+    circle_snapshot_data::State, CircleEventData, CircleProtectionData, CircleSnapshotData,
+};
+
+const SNAPSHOT_INTERVAL: i32 = 10;
 
 #[derive(Clone, Debug)]
 pub struct CircleRepository {
@@ -26,28 +30,134 @@ impl CircleRepository {
     pub fn new(db: sqlx::MySqlPool) -> Self {
         Self { db }
     }
+
+    async fn get_latest_snapshot(
+        &self,
+        circle_id: &CircleId,
+    ) -> Result<Option<(Circle, Version)>, anyhow::Error> {
+        let query = sqlx::query(
+            "SELECT * FROM circle_snapshots WHERE circle_id = ? ORDER BY version DESC LIMIT 1",
+        )
+        .bind(circle_id.to_string());
+
+        let row = match query.fetch_optional(&self.db).await {
+            Ok(Some(row)) => row,
+            Ok(None) => return Ok(None),
+            Err(e) => {
+                tracing::error!("Failed to fetch snapshot: {:?}", e);
+                return Err(anyhow::Error::msg("Failed to fetch circle snapshot"));
+            }
+        };
+
+        let snapshot = CircleSnapshotData::from_row(&row);
+        let circle = snapshot.state.to_circle()?;
+        let version = Version::try_from(snapshot.version)
+            .map_err(|_| anyhow::Error::msg("Failed to convert version from i32"))?;
+
+        Ok(Some((circle, version)))
+    }
+
+    async fn save_snapshot(&self, circle: &Circle) -> Result<(), anyhow::Error> {
+        let circle_id = circle.id.to_string();
+        let version: i32 = circle.version.try_into().map_err(|_| {
+            tracing::error!("Failed to convert version to i32");
+            anyhow::Error::msg("Failed to convert version to i32")
+        })?;
+        let state = State::from_circle(circle).map_err(|e| {
+            tracing::error!("Failed to convert circle to state: {:?}", e);
+            anyhow::Error::msg("Failed to convert circle to state")
+        })?;
+
+        sqlx::query(
+            "INSERT INTO circle_snapshots (circle_id, version, state) 
+             VALUES (?, ?, ?)",
+        )
+        .bind(&circle_id)
+        .bind(version)
+        .bind(&sqlx::types::Json(state)) // Json型に明示的に変換
+        .execute(&self.db)
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to save snapshot: {:?}", e);
+            anyhow::Error::msg("Failed to save circle snapshot")
+        })?;
+
+        tracing::info!(
+            "Saved snapshot for circle {} at version {}",
+            circle_id,
+            version
+        );
+        Ok(())
+    }
 }
 
 #[async_trait::async_trait]
 impl CircleRepositoryInterface for CircleRepository {
     async fn find_by_id(&self, circle_id: &CircleId) -> Result<Circle, anyhow::Error> {
         tracing::info!("find_circle_by_id : {:?}", circle_id);
-        let event_query = sqlx::query("SELECT * FROM circle_events WHERE circle_id = ?")
-            .bind(circle_id.to_string());
+
+        // check snapshot
+        if let Ok(Some((mut circle, snapshot_version))) = self.get_latest_snapshot(circle_id).await
+        {
+            tracing::info!(
+                "Found snapshot for circle {:?} at version {:?}",
+                circle_id,
+                snapshot_version
+            );
+
+            // スナップショット以降のイベントのみを取得
+            let version_i32: i32 = snapshot_version.try_into().map_err(|_| {
+                tracing::error!("Failed to convert version to i32");
+                anyhow::Error::msg("Failed to convert version to i32")
+            })?;
+            let event_query = sqlx::query(
+                "SELECT * FROM circle_events WHERE circle_id = ? AND version > ? ORDER BY version ASC"
+            )
+            .bind(circle_id.to_string())
+            .bind(version_i32);
+
+            let event_rows = event_query.fetch_all(&self.db).await.map_err(|e| {
+                tracing::error!("Failed to fetch circle events after snapshot: {:?}", e);
+                anyhow::Error::msg("Failed to fetch circle events after snapshot")
+            })?;
+
+            // スナップショット以降のイベントをリプレイ
+            if !event_rows.is_empty() {
+                let events = event_rows
+                    .iter()
+                    .map(|row| CircleEvent::from_circle_event_data(CircleEventData::from_row(row)))
+                    .collect::<Result<Vec<CircleEvent>, _>>()?;
+
+                for event in events {
+                    circle.apply_event(&event);
+                }
+            }
+
+            return Ok(circle);
+        }
+
+        let event_query =
+            sqlx::query("SELECT * FROM circle_events WHERE circle_id = ? ORDER BY version ASC")
+                .bind(circle_id.to_string());
         let event_rows = event_query.fetch_all(&self.db).await.map_err(|e| {
             eprintln!("Failed to fetch circle events by circle_id: {:?}", e);
             anyhow::Error::msg("Failed to fetch circle events by circle_id")
         })?;
+
+        if event_rows.is_empty() {
+            return Err(anyhow::Error::msg("Circle not found"));
+        }
 
         let event_data = event_rows
             .iter()
             .map(|row| CircleEvent::from_circle_event_data(CircleEventData::from_row(row)))
             .collect::<Result<Vec<CircleEvent>, _>>()?;
 
-        // Sort events by version
         let mut event_data = event_data;
         event_data.sort_by(|a, b| a.version.cmp(&b.version));
-        Ok(Circle::replay(event_data.clone()))
+        let circle = Circle::replay(event_data);
+
+        Ok(circle)
     }
 
     async fn store(
@@ -94,6 +204,7 @@ impl CircleRepositoryInterface for CircleRepository {
                 .first()
                 .ok_or_else(|| anyhow::Error::msg("No events found"))?;
             let mut current_circle = self.find_by_id(&first_event.circle_id).await?;
+
             for event in &events_for_logging {
                 current_circle.apply_event(event);
             }
@@ -109,6 +220,27 @@ impl CircleRepositoryInterface for CircleRepository {
                     eprintln!("Failed to update circle projection: {:?}", e);
                     anyhow::Error::msg("Failed to update circle projection")
                 })?;
+
+            // スナップショットを必要に応じて保存
+            let version_i32: i32 = current_circle.version.try_into().map_err(|e| {
+                anyhow::Error::msg(format!("Failed to convert version to i32: {:?}", e))
+            })?;
+            if version_i32 % SNAPSHOT_INTERVAL == 0 {
+                // トランザクション完了後にスナップショットを保存
+                let circle_clone = current_circle.clone();
+                let repo = std::sync::Arc::new(self.clone());
+                let circle_clone = circle_clone.clone();
+                tokio::spawn({
+                    let repo = repo.clone();
+                    async move {
+                        if let Err(e) = repo.save_snapshot(&circle_clone).await {
+                            tracing::error!("Failed to save snapshot: {:?}", e);
+                        } else {
+                            tracing::info!("Snapshot saved for circle at version {}", version_i32);
+                        }
+                    }
+                });
+            }
 
             transaction.commit().await?;
         }

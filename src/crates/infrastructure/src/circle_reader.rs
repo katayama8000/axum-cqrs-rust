@@ -25,10 +25,10 @@ impl CircleReaderInterface for CircleReader {
         let circle_query = sqlx::query("SELECT * FROM circle_projections WHERE circle_id = ?")
             .bind(circle_id.to_string());
 
-        let circle_row = circle_query.fetch_one(&self.db).await.map_err(|e| {
-            eprintln!("Failed to fetch circle_projections by circle_id: {:?}", e);
-            anyhow::Error::msg("Failed to fetch circle_projections by id")
-        })?;
+        let circle_row = circle_query
+            .fetch_one(&self.db)
+            .await
+            .map_err(|_| anyhow::Error::msg("Failed to fetch circle_projections by id"))?;
         let v = CircleProtectionData::from_row(&circle_row);
         Ok(Some(Circle::try_from(v)?))
     }
@@ -37,10 +37,10 @@ impl CircleReaderInterface for CircleReader {
         tracing::info!("list_circles");
         let circle_query = sqlx::query("SELECT * FROM circle_projections");
 
-        let circle_rows = circle_query.fetch_all(&self.db).await.map_err(|e| {
-            eprintln!("Failed to fetch circle_projections: {:?}", e);
-            anyhow::Error::msg("Failed to fetch circle_projections")
-        })?;
+        let circle_rows = circle_query
+            .fetch_all(&self.db)
+            .await
+            .map_err(|_| anyhow::Error::msg("Failed to fetch circle_projections"))?;
 
         let circles = circle_rows
             .iter()
