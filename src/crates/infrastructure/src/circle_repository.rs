@@ -19,7 +19,7 @@ use crate::maria_db_schema::{
     circle_snapshot_data::State, CircleEventData, CircleProtectionData, CircleSnapshotData,
 };
 
-const SNAPSHOT_INTERVAL: i32 = 10;
+const SNAPSHOT_INTERVAL: i32 = 5;
 
 #[derive(Clone, Debug)]
 pub struct CircleRepository {
@@ -105,7 +105,6 @@ impl CircleRepositoryInterface for CircleRepository {
                 snapshot_version
             );
 
-            // スナップショット以降のイベントのみを取得
             let version_i32: i32 = snapshot_version.try_into().map_err(|_| {
                 tracing::error!("Failed to convert version to i32");
                 anyhow::Error::msg("Failed to convert version to i32")
@@ -121,7 +120,8 @@ impl CircleRepositoryInterface for CircleRepository {
                 anyhow::Error::msg("Failed to fetch circle events after snapshot")
             })?;
 
-            // スナップショット以降のイベントをリプレイ
+            println!("event_rows: {:?}", event_rows);
+
             if !event_rows.is_empty() {
                 let events = event_rows
                     .iter()
@@ -221,12 +221,10 @@ impl CircleRepositoryInterface for CircleRepository {
                     anyhow::Error::msg("Failed to update circle projection")
                 })?;
 
-            // スナップショットを必要に応じて保存
             let version_i32: i32 = current_circle.version.try_into().map_err(|e| {
                 anyhow::Error::msg(format!("Failed to convert version to i32: {:?}", e))
             })?;
             if version_i32 % SNAPSHOT_INTERVAL == 0 {
-                // トランザクション完了後にスナップショットを保存
                 let circle_clone = current_circle.clone();
                 let repo = std::sync::Arc::new(self.clone());
                 let circle_clone = circle_clone.clone();

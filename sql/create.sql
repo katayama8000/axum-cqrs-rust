@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS circle_projections (
     version INT NOT NULL
 );
 
--- スナップショットテーブル
 CREATE TABLE IF NOT EXISTS circle_snapshots (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     circle_id CHAR(36) NOT NULL,
