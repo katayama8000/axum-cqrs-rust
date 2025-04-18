@@ -3,3 +3,6 @@ DELETE FROM
 
 DELETE FROM
     circle_projections;
+
+DELETE FROM
+    circle_snapshots;
