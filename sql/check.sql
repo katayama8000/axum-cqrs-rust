@@ -7,8 +7,8 @@ select
     *
 from
     circle_projections;
-    
+
 select
     *
-from 
+from
     circle_snapshots;
