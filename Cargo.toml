@@ -33,14 +33,14 @@ infrastructure = { path = "./src/crates/infrastructure" }
 main = { path = "./src/crates/main" }
 
 [workspace.dependencies]
-axum = { version = "0.8.3", features = ["macros"] }
+axum = { version = "0.8.4", features = ["macros"] }
 anyhow = "1.0.98"
 async-trait = "0.1.88"
 mockall = "0.13.1"
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1.45.1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-sqlx = { version = "0.8.5", features = [
+sqlx = { version = "0.8.6", features = [
     "mysql",
     "runtime-tokio-native-tls",
     "chrono",
@@ -53,7 +53,7 @@ tracing-subscriber = { version = "0.3.19", features = [
 ] }
 tower = { version = "0.5.2", features = ["util"] }
 dotenv = "0.15.0"
-chrono = { version = "0.4.40", features = ["serde"] }
+chrono = { version = "0.4.41", features = ["serde"] }
 rand = "0.9.1"
 
 [dev-dependencies]
