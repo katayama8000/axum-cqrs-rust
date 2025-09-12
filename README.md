@@ -1,9 +1,8 @@
 # axum-cqrs-rust
 
 ## How to run
-1. First, start the database container. Refer to the [docs](DB.md) for more details.
-2. Next, run the devcontainer.
-3. Finally, start the server with the following command:
+1. Run the devcontainer.
+2. Then, start the server with the following command:
 
 ```bash
 cargo run
