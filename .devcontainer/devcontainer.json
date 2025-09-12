@@ -13,7 +13,6 @@
       "label": "MariaDB"
     }
   },
-  "postCreateCommand": "docker-compose -f compose.yml up -d db",
   "customizations": {
     "vscode": {
       "extensions": [

@@ -8,6 +8,8 @@ services:
     volumes:
       - ./:/workspace
     working_dir: /workspace
+    depends_on:
+      - db
   db:
     build:
       context: ./Docker/db
