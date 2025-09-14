@@ -15,7 +15,7 @@ pub async fn run() -> Result<(), ()> {
     let mysql_pool = mysql_connect().await.expect("MySQL should connect");
     let redis_client = redis_connect().expect("Redis should connect");
 
-    let command_handler = build_command_handler(mysql_pool);
+    let command_handler = build_command_handler(mysql_pool, redis_client.clone());
     let query_handler = build_query_handler(redis_client);
     let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
 
@@ -57,7 +57,7 @@ mod tests {
     async fn test_version() -> anyhow::Result<()> {
         let mysql_pool = connect_test().await.expect("database should connect");
         let redis_client = redis_connect_test().expect("Redis should connect");
-        let command_handler = build_command_handler(mysql_pool);
+        let command_handler = build_command_handler(mysql_pool, redis_client.clone());
         let query_handler = build_query_handler(redis_client);
         let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
         let app = router().with_state(state);
@@ -139,7 +139,7 @@ mod tests {
     async fn test_fetch_circle() -> anyhow::Result<()> {
         let mysql_pool = connect_test().await.expect("database should connect");
         let redis_client = redis_connect_test().expect("Redis should connect");
-        let command_handler = build_command_handler(mysql_pool);
+        let command_handler = build_command_handler(mysql_pool, redis_client.clone());
         let query_handler = build_query_handler(redis_client);
         let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
         let app = router().with_state(state);
@@ -186,7 +186,7 @@ mod tests {
     async fn test_update_circle() -> anyhow::Result<()> {
         let mysql_pool = connect_test().await.expect("database should connect");
         let redis_client = redis_connect_test().expect("Redis should connect");
-        let command_handler = build_command_handler(mysql_pool);
+        let command_handler = build_command_handler(mysql_pool, redis_client.clone());
         let query_handler = build_query_handler(redis_client);
         let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
         let app = router().with_state(state.clone());
