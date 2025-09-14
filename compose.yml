@@ -10,6 +10,7 @@ services:
     working_dir: /workspace
     depends_on:
       - db
+      - redis
   db:
     build:
       context: ./Docker/db
@@ -21,3 +22,13 @@ services:
       - "3308:3306"
     volumes:
       - ./Docker/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:
