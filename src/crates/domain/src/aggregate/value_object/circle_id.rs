@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use rand::distr::{Alphanumeric, SampleString};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct CircleId(String);
 
 impl CircleId {

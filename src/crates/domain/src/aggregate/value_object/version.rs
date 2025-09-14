@@ -13,7 +13,7 @@ impl fmt::Display for Error {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, serde::Serialize, serde::Deserialize)]
 pub struct Version(u32);
 
 impl Version {

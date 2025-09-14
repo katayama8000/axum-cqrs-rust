@@ -3,7 +3,7 @@ use std::sync::Arc;
 use api::{app_state::AppState, router::router};
 
 use crate::{
-    config::connect::connect,
+    config::{connect::connect as mysql_connect, redis_connect::connect as redis_connect},
     injectors::{
         build_command_handler::build_command_handler, build_query_handler::build_query_handler,
     },
@@ -12,10 +12,11 @@ use crate::{
 pub async fn run() -> Result<(), ()> {
     tracing_subscriber::fmt().init();
 
-    let pool = connect().await.expect("database should connect");
+    let mysql_pool = mysql_connect().await.expect("MySQL should connect");
+    let redis_client = redis_connect().expect("Redis should connect");
 
-    let command_handler = build_command_handler(pool.clone());
-    let query_handler = build_query_handler(pool.clone());
+    let command_handler = build_command_handler(mysql_pool);
+    let query_handler = build_query_handler(redis_client);
     let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
 
     let app = router().with_state(state);
@@ -35,7 +36,7 @@ pub async fn run() -> Result<(), ()> {
 mod tests {
     use std::str::FromStr;
 
-    use crate::config::connect::connect_test;
+    use crate::config::{connect::connect_test, redis_connect::connect_test as redis_connect_test};
     use api::{
         app_state::AppState,
         handler::{CreateCircleRequestBody, CreateCircleResponseBody, UpdateCircleRequestBody},
@@ -54,9 +55,10 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn test_version() -> anyhow::Result<()> {
-        let pool = connect_test().await.expect("database should connect");
-        let command_handler = build_command_handler(pool.clone());
-        let query_handler = build_query_handler(pool.clone());
+        let mysql_pool = connect_test().await.expect("database should connect");
+        let redis_client = redis_connect_test().expect("Redis should connect");
+        let command_handler = build_command_handler(mysql_pool);
+        let query_handler = build_query_handler(redis_client);
         let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
         let app = router().with_state(state);
         let response = app
@@ -135,9 +137,10 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn test_fetch_circle() -> anyhow::Result<()> {
-        let pool = connect_test().await.expect("database should connect");
-        let command_handler = build_command_handler(pool.clone());
-        let query_handler = build_query_handler(pool.clone());
+        let mysql_pool = connect_test().await.expect("database should connect");
+        let redis_client = redis_connect_test().expect("Redis should connect");
+        let command_handler = build_command_handler(mysql_pool);
+        let query_handler = build_query_handler(redis_client);
         let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
         let app = router().with_state(state);
         let unexist_circle_id = 0;
@@ -181,9 +184,10 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn test_update_circle() -> anyhow::Result<()> {
-        let pool = connect_test().await.expect("database should connect");
-        let command_handler = build_command_handler(pool.clone());
-        let query_handler = build_query_handler(pool.clone());
+        let mysql_pool = connect_test().await.expect("database should connect");
+        let redis_client = redis_connect_test().expect("Redis should connect");
+        let command_handler = build_command_handler(mysql_pool);
+        let query_handler = build_query_handler(redis_client);
         let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
         let app = router().with_state(state.clone());
         let circle_id = build_circle(&app).await?;
