@@ -32,10 +32,8 @@ pub async fn handle(
         capacity,
     }: Input,
 ) -> Result<Output, Error> {
-    // create
     let (circle, event) = Circle::create(circle_name, capacity).map_err(|_| Error::InvalidInput)?;
 
-    // store
     circle_repository
         .store(None, vec![event])
         .await
