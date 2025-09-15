@@ -18,4 +18,5 @@ tokio.workspace = true
 tower.workspace = true
 anyhow.workspace = true
 sqlx.workspace = true
+redis.workspace = true
 dotenv.workspace = true

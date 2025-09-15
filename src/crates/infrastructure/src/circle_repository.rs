@@ -21,14 +21,17 @@ use crate::maria_db_schema::{
 
 const SNAPSHOT_INTERVAL: i32 = 5;
 
+use redis::{Client, Commands};
+
 #[derive(Clone, Debug)]
 pub struct CircleRepository {
     db: sqlx::MySqlPool,
+    redis_client: Client,
 }
 
 impl CircleRepository {
-    pub fn new(db: sqlx::MySqlPool) -> Self {
-        Self { db }
+    pub fn new(db: sqlx::MySqlPool, redis_client: Client) -> Self {
+        Self { db, redis_client }
     }
 
     async fn get_latest_snapshot(
@@ -196,18 +199,18 @@ impl CircleRepositoryInterface for CircleRepository {
             transaction.commit().await?;
         }
 
+        let first_event = events_for_logging
+            .first()
+            .ok_or_else(|| anyhow::Error::msg("No events found"))?;
+        let mut current_circle = self.find_by_id(&first_event.circle_id).await?;
+
+        for event in &events_for_logging {
+            current_circle.apply_event(event);
+        }
+
         // Second transaction for updating projections
         {
             let mut transaction = self.db.begin().await?;
-
-            let first_event = events_for_logging
-                .first()
-                .ok_or_else(|| anyhow::Error::msg("No events found"))?;
-            let mut current_circle = self.find_by_id(&first_event.circle_id).await?;
-
-            for event in &events_for_logging {
-                current_circle.apply_event(event);
-            }
             let data = CircleProtectionData::try_from(current_circle.clone())?;
 
             sqlx::query("REPLACE INTO circle_projections (circle_id, name, capacity, version) VALUES (?, ?, ?, ?)",)
@@ -236,6 +239,14 @@ impl CircleRepositoryInterface for CircleRepository {
 
             transaction.commit().await?;
         }
+
+        // After the second transaction is committed, update Redis
+        let mut redis_conn = self.redis_client.get_connection()?;
+        let circle_id_str = current_circle.id.to_string();
+        let circle_json = serde_json::to_string(&current_circle)?;
+
+        redis_conn.set::<_, _, ()>(format!("circle:{}", circle_id_str), circle_json)?;
+        redis_conn.sadd::<_, _, ()>("circles:list", &circle_id_str)?;
 
         tracing::info!("Stored circle events: {:?}", events_for_logging);
         Ok(())

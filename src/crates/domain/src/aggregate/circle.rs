@@ -3,7 +3,7 @@ use anyhow::{Error, Result};
 use event::CircleEvent;
 pub mod event;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Circle {
     pub id: CircleId,
     pub name: String,
