@@ -17,12 +17,10 @@ impl RedisCircleReader {
         Self { client }
     }
 
-    /// Redis用のキーを生成
     fn circle_key(&self, circle_id: &CircleId) -> String {
         format!("circle:{}", circle_id.to_string())
     }
 
-    /// 全サークルリスト用のキー
     fn circles_list_key(&self) -> String {
         "circles:list".to_string()
     }
@@ -62,7 +60,6 @@ impl CircleReaderInterface for RedisCircleReader {
             .await
             .map_err(|e| anyhow::Error::msg(format!("Failed to connect to Redis: {}", e)))?;
 
-        // サークルIDのリストを取得
         let circle_ids: Vec<String> = conn
             .smembers(self.circles_list_key())
             .await
@@ -70,7 +67,6 @@ impl CircleReaderInterface for RedisCircleReader {
 
         let mut circles = Vec::new();
         
-        // 各サークルのデータを取得
         for circle_id_str in circle_ids {
             let circle_id = CircleId::from_str(&circle_id_str)
                 .map_err(|e| anyhow::Error::msg(format!("Invalid circle ID: {}", e)))?;
