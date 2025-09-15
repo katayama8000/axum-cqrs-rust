@@ -8,11 +8,11 @@ use domain::{
 use redis::{AsyncCommands, Client};
 
 #[derive(Clone, Debug)]
-pub struct RedisCircleReader {
+pub struct CircleReader {
     client: Client,
 }
 
-impl RedisCircleReader {
+impl CircleReader {
     pub fn new(client: Client) -> Self {
         Self { client }
     }
@@ -27,7 +27,7 @@ impl RedisCircleReader {
 }
 
 #[async_trait::async_trait]
-impl CircleReaderInterface for RedisCircleReader {
+impl CircleReaderInterface for CircleReader {
     async fn get_circle(&self, circle_id: CircleId) -> Result<Option<Circle>, Error> {
         tracing::info!("find_circle_by_id from Redis: {:?}", circle_id);
         
