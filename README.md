@@ -1,5 +1,18 @@
 # axum-cqrs-rust
 
+## Tech stack
+- Rust
+- Axum
+- MariaDB
+- Redis
+- Kafka
+- Debezium
+- Docker
+
+## Architecture
+- CQRS
+- Event Sourcing
+
 ## How to run
 1. Run the devcontainer.
 2. Then, start the server with the following command:
