@@ -31,7 +31,6 @@ show databases;
 use mydatabase;
 show tables;
 select * from circle_events;
-select * from circle_projections;
 exit;
 ```
 

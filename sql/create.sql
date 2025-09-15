@@ -7,12 +7,6 @@ CREATE TABLE IF NOT EXISTS circle_events (
     occurred_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS circle_projections (
-    circle_id CHAR(36) NOT NULL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    capacity INT NOT NULL,
-    version INT NOT NULL
-);
 
 CREATE TABLE IF NOT EXISTS circle_snapshots (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

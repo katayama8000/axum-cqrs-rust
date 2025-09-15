@@ -1,6 +1,7 @@
 # 📦 Circle 集約 - CQRS + イベントソーシング テーブル設計
 
-このドキュメントは、`Circle` 集約における **Command（書き込みモデル）** および **Query（読み取りモデル）** のテーブル設計を説明します。  
+このドキュメントは、`Circle` 集約における **Command（書き込みモデル）** のテーブル設計と、**Query（読み取りモデル）** のアーキテクチャについて説明します。  
+読み取りモデルはRedisに格納されます。  
 アーキテクチャとしては CQRS + Event Sourcing を採用しています。
 
 ---
@@ -18,20 +19,6 @@ CREATE TABLE circle_events (
     event_type VARCHAR(100) NOT NULL,       -- イベント名（例: CircleCreated）
     payload JSON NOT NULL,                  -- イベント内容（差分 or 全体のスナップショット）
     occurred_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- イベント発生日時
-);
-```
-
-## 🔍 Query: circle_projections
-
-こちらは読み取り用に最適化されたプロジェクションテーブルです。
-コマンド側のイベントから状態を構築・更新し、クエリの高速化や API 応答に利用します。
-
-```sql
-CREATE TABLE circle_projections (
-    circle_id CHAR(36) PRIMARY KEY,         -- 集約ID（Circle ID）
-    name VARCHAR(100) NOT NULL,             -- サークル名
-    capacity SMALLINT NOT NULL,             -- 定員
-    version INT NOT NULL,                   -- 最新バージョン
 );
 ```
 

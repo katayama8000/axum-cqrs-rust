@@ -18,15 +18,6 @@ CREATE TABLE IF NOT EXISTS circle_events (
     INDEX idx_circle_version (circle_id, version)
 );
 
--- プロジェクション: circle_projections テーブルの作成
-CREATE TABLE IF NOT EXISTS circle_projections (
-    circle_id CHAR(36) NOT NULL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    capacity INT NOT NULL,
-    version INT NOT NULL,
-    last_event_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Circle スナップショットテーブル
 CREATE TABLE IF NOT EXISTS circle_snapshots (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
