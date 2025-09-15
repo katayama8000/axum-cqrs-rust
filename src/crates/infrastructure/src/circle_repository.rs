@@ -16,7 +16,7 @@ use domain::{
 };
 
 use crate::maria_db_schema::{
-    circle_snapshot_data::State, CircleEventData, CircleProtectionData, CircleSnapshotData,
+    circle_snapshot_data::State, CircleEventData, CircleSnapshotData,
 };
 
 const SNAPSHOT_INTERVAL: i32 = 5;
@@ -208,39 +208,18 @@ impl CircleRepositoryInterface for CircleRepository {
             current_circle.apply_event(event);
         }
 
-        // Second transaction for updating projections
-        {
-            let mut transaction = self.db.begin().await?;
-            let data = CircleProtectionData::try_from(current_circle.clone())?;
-
-            sqlx::query("REPLACE INTO circle_projections (circle_id, name, capacity, version) VALUES (?, ?, ?, ?)",)
-                .bind(data.circle_id.to_string())
-                .bind(data.name.to_string())
-                .bind(data.capacity)
-                .bind(data.version)
-                .execute(&mut *transaction)
-                .await.map_err(|e| {
-                    eprintln!("Failed to update circle projection: {:?}", e);
-                    anyhow::Error::msg("Failed to update circle projection")
-                })?;
-
-            let version_i32: i32 = current_circle.version.try_into().map_err(|e| {
-                anyhow::Error::msg(format!("Failed to convert version to i32: {:?}", e))
-            })?;
-            if version_i32 % SNAPSHOT_INTERVAL == 0 {
-                // Save snapshot synchronously within the same transaction
-                if let Err(e) = self.save_snapshot(&current_circle).await {
-                    tracing::error!("Failed to save snapshot: {:?}", e);
-                    return Err(anyhow::Error::msg("Failed to save snapshot"));
-                } else {
-                    tracing::info!("Snapshot saved for circle at version {}", version_i32);
-                }
+        // Save snapshot if needed
+        let version_i32: i32 = current_circle.version.try_into().map_err(|e| {
+            anyhow::Error::msg(format!("Failed to convert version to i32: {:?}", e))
+        })?;
+        if version_i32 % SNAPSHOT_INTERVAL == 0 {
+            if let Err(e) = self.save_snapshot(&current_circle).await {
+                tracing::error!("Failed to save snapshot: {:?}", e);
+            } else {
+                tracing::info!("Snapshot saved for circle at version {}", version_i32);
             }
-
-            transaction.commit().await?;
         }
 
-        // After the second transaction is committed, update Redis
         let mut redis_conn = self.redis_client.get_connection()?;
         let circle_id_str = current_circle.id.to_string();
         let circle_json = serde_json::to_string(&current_circle)?;

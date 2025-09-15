@@ -1,54 +1,80 @@
+use std::str::FromStr;
+
+use anyhow::Error;
 use domain::{
     aggregate::{circle::Circle, value_object::circle_id::CircleId},
     interface::query::circle_reader_interface::CircleReaderInterface,
 };
-
-use crate::maria_db_schema::circle_protection_data::CircleProtectionData;
-
-use anyhow::Error;
+use redis::{AsyncCommands, Client};
 
 #[derive(Clone, Debug)]
 pub struct CircleReader {
-    db: sqlx::MySqlPool,
+    client: Client,
 }
 
 impl CircleReader {
-    pub fn new(db: sqlx::MySqlPool) -> Self {
-        Self { db }
+    pub fn new(client: Client) -> Self {
+        Self { client }
+    }
+
+    fn circle_key(&self, circle_id: &CircleId) -> String {
+        format!("circle:{}", circle_id.to_string())
+    }
+
+    fn circles_list_key(&self) -> String {
+        "circles:list".to_string()
     }
 }
 
 #[async_trait::async_trait]
 impl CircleReaderInterface for CircleReader {
     async fn get_circle(&self, circle_id: CircleId) -> Result<Option<Circle>, Error> {
-        tracing::info!("find_circle_by_id : {:?}", circle_id);
-        let circle_query = sqlx::query("SELECT * FROM circle_projections WHERE circle_id = ?")
-            .bind(circle_id.to_string());
-
-        let circle_row = circle_query
-            .fetch_one(&self.db)
+        tracing::info!("find_circle_by_id from Redis: {:?}", circle_id);
+        
+        let mut conn = self.client
+            .get_multiplexed_async_connection()
             .await
-            .map_err(|_| anyhow::Error::msg("Failed to fetch circle_projections by id"))?;
-        let v = CircleProtectionData::from_row(&circle_row);
-        Ok(Some(Circle::try_from(v)?))
+            .map_err(|e| anyhow::Error::msg(format!("Failed to connect to Redis: {}", e)))?;
+
+        let key = self.circle_key(&circle_id);
+        let json_data: Option<String> = conn
+            .get(&key)
+            .await
+            .map_err(|e| anyhow::Error::msg(format!("Failed to get circle from Redis: {}", e)))?;
+
+        match json_data {
+            Some(data) => {
+                let circle: Circle = serde_json::from_str(&data)
+                    .map_err(|e| anyhow::Error::msg(format!("Failed to deserialize circle: {}", e)))?;
+                Ok(Some(circle))
+            }
+            None => Ok(None),
+        }
     }
 
     async fn list_circles(&self) -> Result<Vec<Circle>, Error> {
-        tracing::info!("list_circles");
-        let circle_query = sqlx::query("SELECT * FROM circle_projections");
-
-        let circle_rows = circle_query
-            .fetch_all(&self.db)
+        tracing::info!("list_circles from Redis");
+        
+        let mut conn = self.client
+            .get_multiplexed_async_connection()
             .await
-            .map_err(|_| anyhow::Error::msg("Failed to fetch circle_projections"))?;
+            .map_err(|e| anyhow::Error::msg(format!("Failed to connect to Redis: {}", e)))?;
 
-        let circles = circle_rows
-            .iter()
-            .map(|row| {
-                let circle_data = CircleProtectionData::from_row(row);
-                Circle::try_from(circle_data)
-            })
-            .collect::<Result<Vec<Circle>, Error>>()?;
+        let circle_ids: Vec<String> = conn
+            .smembers(self.circles_list_key())
+            .await
+            .map_err(|e| anyhow::Error::msg(format!("Failed to get circle list from Redis: {}", e)))?;
+
+        let mut circles = Vec::new();
+        
+        for circle_id_str in circle_ids {
+            let circle_id = CircleId::from_str(&circle_id_str)
+                .map_err(|e| anyhow::Error::msg(format!("Invalid circle ID: {}", e)))?;
+            
+            if let Some(circle) = self.get_circle(circle_id).await? {
+                circles.push(circle);
+            }
+        }
 
         Ok(circles)
     }
