@@ -26,6 +26,11 @@
       "label": "Zookeeper"
     }
   },
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    }
+  },
   "customizations": {
     "vscode": {
       "extensions": [
