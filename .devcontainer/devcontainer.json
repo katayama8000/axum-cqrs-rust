@@ -3,7 +3,7 @@
     "../compose.yml"
   ],
   "service": "server",
-  "runServices": ["server", "db", "redis"],
+  "runServices": ["server", "db", "redis", "zookeeper", "kafka", "connect"],
   "workspaceFolder": "/workspace",
   "customizations": {
     "vscode": {
