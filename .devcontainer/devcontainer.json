@@ -3,9 +3,9 @@
     "../compose.yml"
   ],
   "service": "server",
-  "runServices": ["server", "db", "redis", "zookeeper", "kafka", "connect"],
+  "runServices": ["server", "db", "redis"],
   "workspaceFolder": "/workspace",
-  "forwardPorts": [8080, 3308, 6379, 8083, 9092, 2181],
+  "forwardPorts": [8080, 3308, 6379],
   "portsAttributes": {
     "8080": {
       "label": "API Server"
@@ -15,15 +15,6 @@
     },
     "6379": {
       "label": "Redis"
-    },
-    "8083": {
-      "label": "Kafka Connect"
-    },
-    "9092": {
-      "label": "Kafka"
-    },
-    "2181": {
-      "label": "Zookeeper"
     }
   },
   "customizations": {
