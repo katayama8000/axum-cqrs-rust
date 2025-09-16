@@ -10,7 +10,7 @@ cargo run
 
 ### check version to see if the server is running
 ```bash
-curl -X GET http://127.0.0.1:3000/version
+curl -X GET http://127.0.0.1:8080/version
 ``` 
 
 ### create 
@@ -25,17 +25,17 @@ curl -X POST \
         "owner_grade": 3,
         "owner_major": "Music"
       }' \
-  http://127.0.0.1:3000/circle
+  http://127.0.0.1:8080/circle
 ```
 
 ### find
 ```bash
-curl -X GET http://127.0.0.1:3000/circle/{circle_id}
+curl -X GET http://127.0.0.1:8080/circle/{circle_id}
 ``` 
 
 ### find all
 ```bash 
-curl -X GET http://127.0.0.1:3000/circle
+curl -X GET http://127.0.0.1:8080/circle
 ```
 
 ### update
@@ -47,6 +47,6 @@ curl -X PUT \
         "capacity": 15,
         "version": 2
       }' \
-  http://127.0.0.1:3000/circle/{circle_id}
+  http://127.0.0.1:8080/circle/{circle_id}
 ```
 

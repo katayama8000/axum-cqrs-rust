@@ -5,18 +5,6 @@
   "service": "server",
   "runServices": ["server", "db", "redis"],
   "workspaceFolder": "/workspace",
-  "forwardPorts": [8080, 3308, 6379],
-  "portsAttributes": {
-    "8080": {
-      "label": "API Server"
-    },
-    "3308": {
-      "label": "MariaDB"
-    },
-    "6379": {
-      "label": "Redis"
-    }
-  },
   "customizations": {
     "vscode": {
       "extensions": [
