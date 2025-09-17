@@ -21,17 +21,14 @@ use crate::maria_db_schema::{
 
 const SNAPSHOT_INTERVAL: i32 = 5;
 
-use redis::{Client, Commands};
-
 #[derive(Clone, Debug)]
 pub struct CircleRepository {
     db: sqlx::MySqlPool,
-    redis_client: Client,
 }
 
 impl CircleRepository {
-    pub fn new(db: sqlx::MySqlPool, redis_client: Client) -> Self {
-        Self { db, redis_client }
+    pub fn new(db: sqlx::MySqlPool) -> Self {
+        Self { db }
     }
 
     async fn get_latest_snapshot(
@@ -219,13 +216,6 @@ impl CircleRepositoryInterface for CircleRepository {
                 tracing::info!("Snapshot saved for circle at version {}", version_i32);
             }
         }
-
-        let mut redis_conn = self.redis_client.get_connection()?;
-        let circle_id_str = current_circle.id.to_string();
-        let circle_json = serde_json::to_string(&current_circle)?;
-
-        redis_conn.set::<_, _, ()>(format!("circle:{}", circle_id_str), circle_json)?;
-        redis_conn.sadd::<_, _, ()>("circles:list", &circle_id_str)?;
 
         tracing::info!("Stored circle events: {:?}", events_for_logging);
         Ok(())
