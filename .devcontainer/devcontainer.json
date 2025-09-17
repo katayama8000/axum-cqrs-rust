@@ -6,31 +6,6 @@
   "runServices": ["server", "db", "redis", "zookeeper", "kafka", "connect"],
   "workspaceFolder": "/workspace",
   "forwardPorts": [8080, 3308, 6379, 8083, 9092, 2181],
-  "portsAttributes": {
-    "8080": {
-      "label": "API Server"
-    },
-    "3308": {
-      "label": "MariaDB"
-    },
-    "6379": {
-      "label": "Redis"
-    },
-    "8083": {
-      "label": "Kafka Connect"
-    },
-    "9092": {
-      "label": "Kafka"
-    },
-    "2181": {
-      "label": "Zookeeper"
-    }
-  },
-  "features": {
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "lts"
-    }
-  },
   "customizations": {
     "vscode": {
       "extensions": [

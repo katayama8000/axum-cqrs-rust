@@ -11,7 +11,7 @@ impl RedisConfig {
     fn from_env() -> Self {
         dotenv().ok();
         Self {
-            redis_url: env::var("REDIS_URL").unwrap_or_else(|_| "redis://127.0.0.1:6379".to_string()),
+            redis_url: env::var("REDIS_URL").unwrap_or_else(|_| "redis://127.0.0.1:6380".to_string()),
         }
     }
 }

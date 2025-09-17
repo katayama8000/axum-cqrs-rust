@@ -21,7 +21,7 @@ pub async fn run() -> Result<(), ()> {
 
     let app = router().with_state(state);
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080")
         .await
         .expect("server should bind to port");
     println!(
