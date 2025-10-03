@@ -61,7 +61,9 @@ services:
     volumes:
       - ./Docker/db/init.sql:/docker-entrypoint-initdb.d/init.sql
   redis:
-    image: redis:7-alpine
+    build:
+      context: ./Docker/redis
+      dockerfile: Dockerfile
     restart: always
     ports:
       - "6380:6379"
