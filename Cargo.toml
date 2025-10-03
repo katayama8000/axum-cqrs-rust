@@ -6,6 +6,7 @@ members = [
     "src/crates/query",
     "src/crates/api",
     "src/crates/main",
+    "src/crates/cdc-consumer",
 ]
 [package]
 name = "app"
