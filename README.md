@@ -20,6 +20,11 @@
 ```bash
 cargo run
 ```
+Or, you can use the watch script to automatically restart the server when you make changes to the code: 
+
+```bash
+./watch.sh
+```
 
 ### check version to see if the server is running
 ```bash
@@ -43,7 +48,7 @@ curl -X POST \
 
 ### find
 ```bash
-curl -X GET http://127.0.0.1:8080/circle/{circle_id}
+curl -X GET http://127.0.0.1:8080/circle/8vDD7AsP33WZjbUnjhxuhlUbgUwC2VDEehyN
 ``` 
 
 ### find all
