@@ -5,6 +5,7 @@
   "service": "server",
   "runServices": ["server", "db", "redis", "zookeeper", "kafka", "connect"],
   "workspaceFolder": "/workspace",
+  "forwardPorts": [8080, 3308, 6379, 8083, 9092, 2181],
   "customizations": {
     "vscode": {
       "extensions": [
