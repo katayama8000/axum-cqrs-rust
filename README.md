@@ -18,7 +18,7 @@
 2. Then, start the server with the following command:
 
 ```bash
-cargo run
+cargo run --bin main
 ```
 Or, you can use the watch script to automatically restart the server when you make changes to the code: 
 
@@ -48,7 +48,7 @@ curl -X POST \
 
 ### find
 ```bash
-curl -X GET http://127.0.0.1:8080/circle/8vDD7AsP33WZjbUnjhxuhlUbgUwC2VDEehyN
+curl -X GET http://127.0.0.1:8080/circle/HlPI7rLpLP5NqHNIecdtQVwpv4kCYfDF2PrE
 ``` 
 
 ### find all
@@ -67,4 +67,7 @@ curl -X PUT \
       }' \
   http://127.0.0.1:8080/circle/{circle_id}
 ```
+
+- ref
+  - https://scrapbox.io/katayama8000/axum-cqrs-rust
 

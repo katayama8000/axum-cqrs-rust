@@ -1,10 +1,10 @@
 {
-  "dockerComposeFile": [
-    "../compose.yml"
-  ],
+  "dockerComposeFile": ["../compose.yml"],
   "service": "server",
-  "runServices": ["server", "db", "redis", "zookeeper", "kafka", "connect"],
+  "runServices": ["server", "db", "redis"],
+  // "runServices": ["server", "db", "redis", "zookeeper", "kafka", "connect"],
   "workspaceFolder": "/workspace",
+  "postCreateCommand": "bash /workspace/.devcontainer/setup-git-aliases.sh",
   "customizations": {
     "vscode": {
       "extensions": [
