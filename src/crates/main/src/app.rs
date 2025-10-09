@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use api::{app_state::AppState, router::router};
+use infrastructure::event_publisher::{EventPublisher, InMemoryEventPublisher, RedisProjectionHandler};
 
 use crate::{
     config::{connect::connect as mysql_connect, redis_connect::connect as redis_connect},
@@ -9,13 +10,28 @@ use crate::{
     },
 };
 
+async fn setup_event_system(
+    redis_client: redis::Client,
+    db: sqlx::MySqlPool,
+) -> Arc<dyn EventPublisher> {
+    let (event_publisher, event_receiver) = InMemoryEventPublisher::new();
+    let redis_handler = RedisProjectionHandler::new(redis_client, db);
+    
+    tokio::spawn(async move {
+        redis_handler.start_processing(event_receiver).await;
+    });
+    
+    Arc::new(event_publisher)
+}
+
 pub async fn run() -> Result<(), ()> {
     tracing_subscriber::fmt().init();
 
     let mysql_pool = mysql_connect().await.expect("MySQL should connect");
     let redis_client = redis_connect().expect("Redis should connect");
 
-    let command_handler = build_command_handler(mysql_pool, redis_client.clone());
+    let event_publisher = setup_event_system(redis_client.clone(), mysql_pool.clone()).await;
+    let command_handler = build_command_handler(mysql_pool, event_publisher);
     let query_handler = build_query_handler(redis_client);
     let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
 
@@ -51,13 +67,19 @@ mod tests {
 
     use super::*;
 
+    async fn setup_test_dependencies() -> (Arc<dyn EventPublisher>, sqlx::MySqlPool, redis::Client) {
+        let mysql_pool = connect_test().await.expect("database should connect");
+        let redis_client = redis_connect_test().expect("Redis should connect");
+        let event_publisher = setup_event_system(redis_client.clone(), mysql_pool.clone()).await;
+        (event_publisher, mysql_pool, redis_client)
+    }
+
     // FIXME: ignore test because it requires a running database
     #[tokio::test]
     #[ignore]
     async fn test_version() -> anyhow::Result<()> {
-        let mysql_pool = connect_test().await.expect("database should connect");
-        let redis_client = redis_connect_test().expect("Redis should connect");
-        let command_handler = build_command_handler(mysql_pool, redis_client.clone());
+        let (event_publisher, mysql_pool, redis_client) = setup_test_dependencies().await;
+        let command_handler = build_command_handler(mysql_pool, event_publisher);
         let query_handler = build_query_handler(redis_client);
         let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
         let app = router().with_state(state);
@@ -137,9 +159,8 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn test_fetch_circle() -> anyhow::Result<()> {
-        let mysql_pool = connect_test().await.expect("database should connect");
-        let redis_client = redis_connect_test().expect("Redis should connect");
-        let command_handler = build_command_handler(mysql_pool, redis_client.clone());
+        let (event_publisher, mysql_pool, redis_client) = setup_test_dependencies().await;
+        let command_handler = build_command_handler(mysql_pool, event_publisher);
         let query_handler = build_query_handler(redis_client);
         let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
         let app = router().with_state(state);
@@ -184,9 +205,8 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn test_update_circle() -> anyhow::Result<()> {
-        let mysql_pool = connect_test().await.expect("database should connect");
-        let redis_client = redis_connect_test().expect("Redis should connect");
-        let command_handler = build_command_handler(mysql_pool, redis_client.clone());
+        let (event_publisher, mysql_pool, redis_client) = setup_test_dependencies().await;
+        let command_handler = build_command_handler(mysql_pool, event_publisher);
         let query_handler = build_query_handler(redis_client);
         let state = AppState::new(Arc::new(command_handler), Arc::new(query_handler));
         let app = router().with_state(state.clone());
