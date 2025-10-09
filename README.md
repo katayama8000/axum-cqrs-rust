@@ -1,37 +1,41 @@
 # axum-cqrs-rust
 
 ## Tech stack
+
 - Rust
 - Axum
 - MariaDB
 - Redis
-- Kafka
-- Debezium
 - Docker
 
 ## Architecture
+
 - CQRS
 - Event Sourcing
 
 ## How to run
+
 1. Run the devcontainer.
 2. Then, start the server with the following command:
 
 ```bash
 cargo run --bin main
 ```
-Or, you can use the watch script to automatically restart the server when you make changes to the code: 
+
+Or, you can use the watch script to automatically restart the server when you make changes to the code:
 
 ```bash
 ./watch.sh
 ```
 
 ### check version to see if the server is running
+
 ```bash
 curl -X GET http://127.0.0.1:8080/version
-``` 
+```
 
-### create 
+### create
+
 ```bash
 curl -X POST \
   -H "Content-Type: application/json" \
@@ -47,16 +51,19 @@ curl -X POST \
 ```
 
 ### find
+
 ```bash
 curl -X GET http://127.0.0.1:8080/circle/HlPI7rLpLP5NqHNIecdtQVwpv4kCYfDF2PrE
-``` 
+```
 
 ### find all
-```bash 
+
+```bash
 curl -X GET http://127.0.0.1:8080/circle
 ```
 
 ### update
+
 ```bash
 curl -X PUT \
   -H "Content-Type: application/json" \
@@ -68,6 +75,6 @@ curl -X PUT \
   http://127.0.0.1:8080/circle/{circle_id}
 ```
 
-- ref
-  - https://scrapbox.io/katayama8000/axum-cqrs-rust
+## References
 
+- https://scrapbox.io/katayama8000/axum-cqrs-rust
