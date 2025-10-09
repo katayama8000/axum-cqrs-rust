@@ -11,7 +11,7 @@ use chrono::NaiveDateTime;
 use sqlx::{types::Json, Row};
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
-pub(crate) struct CircleEventData {
+pub struct CircleEventData {
     pub id: String,
     pub circle_id: String,
     pub version: i32,

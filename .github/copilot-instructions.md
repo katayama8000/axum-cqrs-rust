@@ -105,3 +105,11 @@ cargo build --release
 
 ## Code Generation Guidelines
 When generating code for this project, follow the above rules and patterns, maintaining consistency with existing code style. Particularly, adhere to CQRS architecture principles and ensure proper responsibility allocation to appropriate layers.
+
+## Comements on Code
+- Write a comment in English if the code is complex or non-obvious
+- Use Rust doc comments (`///`) for public functions and structs
+- You can write a comment in japanese to explain in markdown format if necessary
+
+## You can not use docker-compose command
+- You are in a devcontainer environment and you can not use docker-compose command

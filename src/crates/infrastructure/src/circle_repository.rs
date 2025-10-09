@@ -21,17 +21,21 @@ use crate::maria_db_schema::{
 
 const SNAPSHOT_INTERVAL: i32 = 5;
 
-use redis::{Client, Commands};
+use crate::event_publisher::EventPublisher;
+use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct CircleRepository {
     db: sqlx::MySqlPool,
-    redis_client: Client,
+    event_publisher: Arc<dyn EventPublisher>,
 }
 
 impl CircleRepository {
-    pub fn new(db: sqlx::MySqlPool, redis_client: Client) -> Self {
-        Self { db, redis_client }
+    pub fn new(db: sqlx::MySqlPool, event_publisher: Arc<dyn EventPublisher>) -> Self {
+        Self { 
+            db, 
+            event_publisher,
+        }
     }
 
     async fn get_latest_snapshot(
@@ -175,7 +179,7 @@ impl CircleRepositoryInterface for CircleRepository {
 
         let events_for_logging = events.clone();
 
-        // First transaction for storing events
+        // Step 1: Store events in MySQL (this is the source of truth)
         {
             let mut transaction = self.db.begin().await?;
 
@@ -220,19 +224,17 @@ impl CircleRepositoryInterface for CircleRepository {
             }
         }
 
-        let mut redis_conn = self.redis_client.get_connection()?;
-        let circle_id_str = current_circle.id.to_string();
-        let circle_json = serde_json::to_string(&current_circle)?;
-
-        redis_conn.set::<_, _, ()>(format!("circle:{}", circle_id_str), circle_json)?;
-        redis_conn.sadd::<_, _, ()>("circles:list", &circle_id_str)?;
+        // Step 2: Update Redis asynchronously via event-driven approach
+        if let Err(e) = self.event_publisher.publish(events_for_logging.clone()).await {
+            tracing::error!("Failed to publish events for Redis update: {:?}", e);
+        }
 
         tracing::info!("Stored circle events: {:?}", events_for_logging);
         Ok(())
     }
 }
 
-trait EventExt {
+pub(crate) trait EventExt {
     fn from_circle_event_data(event_data: CircleEventData) -> Result<Self, anyhow::Error>
     where
         Self: Sized;
