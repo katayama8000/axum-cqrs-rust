@@ -13,7 +13,7 @@
 - CQRS
 - Event Sourcing
 
-You can see the [architecture](./EVENT_SYSTEM_ARCHITECTURE.md) for more details.
+You can see the [architecture](./docs/EVENT_SYSTEM_ARCHITECTURE.md) for more details.
 
 ## How to run
 
