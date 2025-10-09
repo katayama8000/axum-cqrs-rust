@@ -13,6 +13,8 @@
 - CQRS
 - Event Sourcing
 
+You can see the [architecture](./EVENT_SYSTEM_ARCHITECTURE.md) for more details.
+
 ## How to run
 
 1. Run the devcontainer.
