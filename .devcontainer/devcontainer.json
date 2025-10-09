@@ -4,6 +4,7 @@
   "runServices": ["server", "db", "redis"],
   // "runServices": ["server", "db", "redis", "zookeeper", "kafka", "connect"],
   "workspaceFolder": "/workspace",
+  "postCreateCommand": "bash /workspace/.devcontainer/setup-git-aliases.sh",
   "customizations": {
     "vscode": {
       "extensions": [
