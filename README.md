@@ -48,7 +48,7 @@ curl -X POST \
 
 ### find
 ```bash
-curl -X GET http://127.0.0.1:8080/circle/{circle_id}
+curl -X GET http://127.0.0.1:8080/circle/HlPI7rLpLP5NqHNIecdtQVwpv4kCYfDF2PrE
 ``` 
 
 ### find all
@@ -67,4 +67,7 @@ curl -X PUT \
       }' \
   http://127.0.0.1:8080/circle/{circle_id}
 ```
+
+- ref
+  - https://scrapbox.io/katayama8000/axum-cqrs-rust
 
