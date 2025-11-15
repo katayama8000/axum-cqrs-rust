@@ -9,11 +9,11 @@ pub trait EventPublisher: Send + Sync + std::fmt::Debug {
 }
 
 #[derive(Debug)]
-pub struct InMemoryEventPublisher {
+pub struct ChannelEventPublisher {
     sender: mpsc::UnboundedSender<CircleEvent>,
 }
 
-impl InMemoryEventPublisher {
+impl ChannelEventPublisher {
     pub fn new() -> (Self, mpsc::UnboundedReceiver<CircleEvent>) {
         let (sender, receiver) = mpsc::unbounded_channel();
         (Self { sender }, receiver)
@@ -21,7 +21,7 @@ impl InMemoryEventPublisher {
 }
 
 #[async_trait::async_trait]
-impl EventPublisher for InMemoryEventPublisher {
+impl EventPublisher for ChannelEventPublisher {
     async fn publish(&self, events: Vec<CircleEvent>) -> Result<()> {
         for event in events {
             self.sender.send(event)

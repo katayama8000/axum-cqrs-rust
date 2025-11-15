@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use api::{app_state::AppState, router::router};
-use infrastructure::event_publisher::{EventPublisher, InMemoryEventPublisher, RedisProjectionHandler};
+use infrastructure::event_publisher::{EventPublisher, ChannelEventPublisher, RedisProjectionHandler};
 
 use crate::{
     config::{connect::connect as mysql_connect, redis_connect::connect as redis_connect},
@@ -14,7 +14,7 @@ async fn setup_event_system(
     redis_client: redis::Client,
     db: sqlx::MySqlPool,
 ) -> Arc<dyn EventPublisher> {
-    let (event_publisher, event_receiver) = InMemoryEventPublisher::new();
+    let (event_publisher, event_receiver) = ChannelEventPublisher::new();
     let redis_handler = RedisProjectionHandler::new(redis_client, db);
     
     tokio::spawn(async move {
