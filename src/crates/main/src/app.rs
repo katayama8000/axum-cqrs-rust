@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
 use api::{app_state::AppState, router::router};
-use infrastructure::event_publisher::{EventPublisher, ChannelEventPublisher, RedisProjectionHandler};
+use infrastructure::event_publisher::{
+    ChannelEventPublisher, EventPublisher, RedisProjectionHandler,
+};
 
 use crate::{
     config::{connect::connect as mysql_connect, redis_connect::connect as redis_connect},
@@ -16,11 +18,11 @@ async fn setup_event_system(
 ) -> Arc<dyn EventPublisher> {
     let (event_publisher, event_receiver) = ChannelEventPublisher::new();
     let redis_handler = RedisProjectionHandler::new(redis_client, db);
-    
+
     tokio::spawn(async move {
         redis_handler.start_processing(event_receiver).await;
     });
-    
+
     Arc::new(event_publisher)
 }
 
@@ -67,7 +69,8 @@ mod tests {
 
     use super::*;
 
-    async fn setup_test_dependencies() -> (Arc<dyn EventPublisher>, sqlx::MySqlPool, redis::Client) {
+    async fn setup_test_dependencies() -> (Arc<dyn EventPublisher>, sqlx::MySqlPool, redis::Client)
+    {
         let mysql_pool = connect_test().await.expect("database should connect");
         let redis_client = redis_connect_test().expect("Redis should connect");
         let event_publisher = setup_event_system(redis_client.clone(), mysql_pool.clone()).await;

@@ -15,9 +15,7 @@ use domain::{
     interface::command::circle_repository_interface::CircleRepositoryInterface,
 };
 
-use crate::maria_db_schema::{
-    circle_snapshot_data::State, CircleEventData, CircleSnapshotData,
-};
+use crate::maria_db_schema::{circle_snapshot_data::State, CircleEventData, CircleSnapshotData};
 
 const SNAPSHOT_INTERVAL: i32 = 5;
 
@@ -32,8 +30,8 @@ pub struct CircleRepository {
 
 impl CircleRepository {
     pub fn new(db: sqlx::MySqlPool, event_publisher: Arc<dyn EventPublisher>) -> Self {
-        Self { 
-            db, 
+        Self {
+            db,
             event_publisher,
         }
     }
@@ -225,7 +223,11 @@ impl CircleRepositoryInterface for CircleRepository {
         }
 
         // Step 2: Update Redis asynchronously via event-driven approach
-        if let Err(e) = self.event_publisher.publish(events_for_logging.clone()).await {
+        if let Err(e) = self
+            .event_publisher
+            .publish(events_for_logging.clone())
+            .await
+        {
             tracing::error!("Failed to publish events for Redis update: {:?}", e);
         }
 

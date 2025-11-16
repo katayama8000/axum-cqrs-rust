@@ -30,8 +30,9 @@ impl CircleReader {
 impl CircleReaderInterface for CircleReader {
     async fn get_circle(&self, circle_id: CircleId) -> Result<Option<Circle>, Error> {
         tracing::info!("find_circle_by_id from Redis: {:?}", circle_id);
-        
-        let mut conn = self.client
+
+        let mut conn = self
+            .client
             .get_multiplexed_async_connection()
             .await
             .map_err(|e| anyhow::Error::msg(format!("Failed to connect to Redis: {}", e)))?;
@@ -44,8 +45,9 @@ impl CircleReaderInterface for CircleReader {
 
         match json_data {
             Some(data) => {
-                let circle: Circle = serde_json::from_str(&data)
-                    .map_err(|e| anyhow::Error::msg(format!("Failed to deserialize circle: {}", e)))?;
+                let circle: Circle = serde_json::from_str(&data).map_err(|e| {
+                    anyhow::Error::msg(format!("Failed to deserialize circle: {}", e))
+                })?;
                 Ok(Some(circle))
             }
             None => Ok(None),
@@ -54,23 +56,24 @@ impl CircleReaderInterface for CircleReader {
 
     async fn list_circles(&self) -> Result<Vec<Circle>, Error> {
         tracing::info!("list_circles from Redis");
-        
-        let mut conn = self.client
+
+        let mut conn = self
+            .client
             .get_multiplexed_async_connection()
             .await
             .map_err(|e| anyhow::Error::msg(format!("Failed to connect to Redis: {}", e)))?;
 
-        let circle_ids: Vec<String> = conn
-            .smembers(self.circles_list_key())
-            .await
-            .map_err(|e| anyhow::Error::msg(format!("Failed to get circle list from Redis: {}", e)))?;
+        let circle_ids: Vec<String> =
+            conn.smembers(self.circles_list_key()).await.map_err(|e| {
+                anyhow::Error::msg(format!("Failed to get circle list from Redis: {}", e))
+            })?;
 
         let mut circles = Vec::new();
-        
+
         for circle_id_str in circle_ids {
             let circle_id = CircleId::from_str(&circle_id_str)
                 .map_err(|e| anyhow::Error::msg(format!("Invalid circle ID: {}", e)))?;
-            
+
             if let Some(circle) = self.get_circle(circle_id).await? {
                 circles.push(circle);
             }
