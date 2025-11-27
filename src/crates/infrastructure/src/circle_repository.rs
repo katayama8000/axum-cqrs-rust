@@ -175,13 +175,11 @@ impl CircleRepositoryInterface for CircleRepository {
             return Ok(());
         }
 
-        let events_for_logging = events.clone();
-
         // Step 1: Store events in MySQL (this is the source of truth)
         {
             let mut transaction = self.db.begin().await?;
 
-            for event in events {
+            for event in &events {
                 let event_data = CircleEventData::try_from(event.clone())?;
 
                 sqlx::query("INSERT INTO circle_events (circle_id, id, occurred_at, event_type, version, payload) VALUES (?, ?, ?, ?, ?, ?)")
@@ -201,12 +199,12 @@ impl CircleRepositoryInterface for CircleRepository {
             transaction.commit().await?;
         }
 
-        let first_event = events_for_logging
+        let first_event = events
             .first()
             .ok_or_else(|| anyhow::Error::msg("No events found"))?;
         let mut current_circle = self.find_by_id(&first_event.circle_id).await?;
 
-        for event in &events_for_logging {
+        for event in &events {
             current_circle.apply_event(event);
         }
 
@@ -223,15 +221,11 @@ impl CircleRepositoryInterface for CircleRepository {
         }
 
         // Step 2: Update Redis asynchronously via event-driven approach
-        if let Err(e) = self
-            .event_publisher
-            .publish(events_for_logging.clone())
-            .await
-        {
+        if let Err(e) = self.event_publisher.publish(events.clone()).await {
             tracing::error!("Failed to publish events for Redis update: {:?}", e);
         }
 
-        tracing::info!("Stored circle events: {:?}", events_for_logging);
+        tracing::info!("Stored circle events: {:?}", events);
         Ok(())
     }
 }
