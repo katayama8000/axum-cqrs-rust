@@ -4,7 +4,7 @@
 echo "Setting up Git configuration and aliases..."
 
 # Git user configuration
-git config --global user.name "katauama8000"
+git config --global user.name "katayama8000"
 git config --global user.email "tattu.0310@gmail.com"
 
 # Basic shortcuts
