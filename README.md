@@ -30,6 +30,18 @@ Or, you can use the watch script to automatically restart the server when you ma
 ./watch.sh
 ```
 
+## Database Management Tools
+
+When running the devcontainer, the following database management tools are automatically available:
+
+### phpMyAdmin (MySQL/MariaDB)
+Access at: http://localhost:8081
+
+### Redis Commander (Redis)
+Access at: http://localhost:8082
+
+## API Usage
+
 ### check version to see if the server is running
 
 ```bash
@@ -42,7 +54,7 @@ curl -X GET http://127.0.0.1:8080/version
 curl -X POST \
   -H "Content-Type: application/json" \
   -d '{
-        "circle_name": "music club",
+        "circle_name": "awesome music club",
         "capacity": 10,
         "owner_name": "John Lennon",
         "owner_age": 21,
@@ -74,7 +86,7 @@ curl -X PUT \
         "capacity": 15,
         "version": 2
       }' \
-  http://127.0.0.1:8080/circle/{circle_id}
+  http://127.0.0.1:8080/circle/wMenk0sdVDfQ5cvcqDOs3ubmXVeJ3aXs6Pbu
 ```
 
 ## References

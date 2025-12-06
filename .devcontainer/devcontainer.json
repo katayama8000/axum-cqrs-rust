@@ -1,8 +1,7 @@
 {
   "dockerComposeFile": ["../compose.yml"],
   "service": "server",
-  "runServices": ["server", "db", "redis"],
-  // "runServices": ["server", "db", "redis", "zookeeper", "kafka", "connect"],
+  "runServices": ["server", "db", "redis", "phpmyadmin", "redis-commander"],
   "workspaceFolder": "/workspace",
   "postCreateCommand": "bash /workspace/.devcontainer/setup-git-aliases.sh",
   "customizations": {
