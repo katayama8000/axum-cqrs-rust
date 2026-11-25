@@ -1,0 +1,10 @@
+name: axum-cqrs-circle-proof
+
+services:
+  circle-proof:
+    build:
+      context: ..
+      dockerfile: proofs/Dockerfile
+    volumes:
+      - ..:/repo:ro
+    command: ["sh", "/repo/proofs/check.sh"]

@@ -1,6 +1,8 @@
 use super::value_object::{circle_id::CircleId, version::Version};
 use anyhow::{Error, Result};
 use event::CircleEvent;
+
+mod capacity;
 pub mod event;
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -88,10 +90,10 @@ impl Circle {
     // utility methods
 
     fn validate_capacity(capacity: i16) -> Result<()> {
-        if capacity < 3 {
-            Err(Error::msg("Circle capacity must be 3 or more"))
-        } else {
+        if capacity::is_valid(capacity) {
             Ok(())
+        } else {
+            Err(Error::msg("Circle capacity must be 3 or more"))
         }
     }
 }
