@@ -12,7 +12,7 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
       - name: Install Rust toolchain
@@ -28,3 +28,13 @@ jobs:
         run: cargo clippy -- -D clippy::unwrap_used
       - name: Test
         run: cargo nextest run --workspace
+
+  circle-proof:
+    name: Circle capacity proof
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check the Lean proof
+        run: make prove-circle

@@ -1,6 +1,8 @@
 use super::value_object::{circle_id::CircleId, version::Version};
 use anyhow::{Error, Result};
 use event::CircleEvent;
+
+mod capacity;
 pub mod event;
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -71,9 +73,7 @@ impl Circle {
                 if let Some(new_name) = name {
                     self.name = new_name.clone();
                 }
-                if let Some(new_capacity) = capacity {
-                    self.capacity = *new_capacity;
-                }
+                self.capacity = capacity::apply_update(self.capacity, *capacity);
                 self.version = event.version.clone();
             }
         }
@@ -88,10 +88,10 @@ impl Circle {
     // utility methods
 
     fn validate_capacity(capacity: i16) -> Result<()> {
-        if capacity < 3 {
-            Err(Error::msg("Circle capacity must be 3 or more"))
-        } else {
+        if capacity::is_valid(capacity) {
             Ok(())
+        } else {
+            Err(Error::msg("Circle capacity must be 3 or more"))
         }
     }
 }

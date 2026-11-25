@@ -19,3 +19,7 @@ down:
 
 ps:
 	docker-compose ps
+
+.PHONY: prove-circle
+prove-circle:
+	docker compose -f proofs/compose.yml run --build --rm circle-proof
