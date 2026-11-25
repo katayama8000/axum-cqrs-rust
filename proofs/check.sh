@@ -6,7 +6,7 @@ trap 'rm -rf "$work"' EXIT
 cd "$work"
 cp /repo/proofs/CircleCapacitySpec.lean .
 
-# Extract the same source file that Circle::validate_capacity calls.
+# Extract the capacity functions used by Circle.
 charon rustc --preset=aeneas --sysroot default --dest-file=circle_capacity.llbc -- \
     /repo/src/crates/domain/src/aggregate/circle/capacity.rs \
     --crate-name=circle_capacity --crate-type=lib

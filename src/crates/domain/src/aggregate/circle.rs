@@ -73,9 +73,7 @@ impl Circle {
                 if let Some(new_name) = name {
                     self.name = new_name.clone();
                 }
-                if let Some(new_capacity) = capacity {
-                    self.capacity = *new_capacity;
-                }
+                self.capacity = capacity::apply_update(self.capacity, *capacity);
                 self.version = event.version.clone();
             }
         }

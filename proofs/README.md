@@ -8,5 +8,13 @@ Charon reads the Rust source of the same capacity predicate used by
 `CircleCapacitySpec.lean` checks it against the integer specification
 `3 ≤ capacity` for every Rust `i16`.
 
-The theorem covers the capacity predicate. Event replay applies recorded
-values directly and is outside its scope.
+The proof also uses the Rust capacity transition called by
+`Circle::apply_event`. It checks that omitting capacity keeps the current
+value, and that replaying any number of updates preserves the lower bound
+when the creation capacity and all explicitly supplied capacities are at
+least 3.
+
+The replay theorem models only the capacity field of one creation event
+followed by update events. Lean proves the loop in that model using the
+generated Rust transition. Event ordering, history validation, and other
+fields of `Circle::replay` are outside the theorem.
